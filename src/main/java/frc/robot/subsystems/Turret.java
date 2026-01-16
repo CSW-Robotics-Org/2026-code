@@ -7,9 +7,14 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Turret extends SubsystemBase{
     
     // Creates the shooter motor
-    private SparkMax s_motor;
+    private SparkMax s1_motor;
     // Stores the max speed of the s_motor
-    public double sMaxSpeed = 1;
+    public double s1MaxSpeed = 1;
+
+    // Creates the shooter motor
+    private SparkMax s2_motor;
+    // Stores the max speed of the s_motor
+    public double s2MaxSpeed = 1;
 
     // Creates the turret rotation motor
     private SparkMax rot_motor;
@@ -26,16 +31,20 @@ public class Turret extends SubsystemBase{
     public double fMaxSpeed = 1;
 
     // The constructor that creates the motors
-    public Turret(int s_id, int rot_id, int feed_id){
-        s_motor = new SparkMax(s_id, MotorType.kBrushless);
+    public Turret(int s1_id,int s2_id, int rot_id, int feed_id){
+        s1_motor = new SparkMax(s1_id, MotorType.kBrushless);
+        s2_motor = new SparkMax(s2_id, MotorType.kBrushless);
         rot_motor = new SparkMax(rot_id, MotorType.kBrushless);
         feed_motor = new SparkMax(feed_id, MotorType.kBrushless);
     }
 
     // Sets the shooter motor speed
     public void SetShooterMotor(double speed){
-        s_motor.set(
-            Math.min(sMaxSpeed, speed)
+        s1_motor.set(
+            Math.min(s1MaxSpeed, speed)
+        );
+        s2_motor.set(
+            -Math.min(s2MaxSpeed, speed)
         );
     }
 

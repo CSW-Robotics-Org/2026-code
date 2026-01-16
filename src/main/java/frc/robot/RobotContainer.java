@@ -19,7 +19,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.LimeLightTracking;
+import frc.robot.commands.DriveTracking;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.LimeLight;
@@ -80,7 +80,7 @@ public class RobotContainer {
         new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
 
         // Limelight tracking button
-        new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(()-> LimeLightTracking.LineUpLeft(drivetrain,limelight)));
+        new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(()-> DriveTracking.LineUpLeft(drivetrain,limelight)));
 
         // robot rel
         new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
@@ -96,7 +96,7 @@ public class RobotContainer {
             new SwerveRequest.RobotCentric()
                 .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
                 .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                .withRotationalRate(LimeLightTracking.PointAt(limelight))
+                .withRotationalRate(DriveTracking.PointAt(limelight))
         
         ));
 

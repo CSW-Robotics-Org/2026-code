@@ -10,7 +10,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.LimeLight;
 
 
-public class LimeLightTracking extends Command {
+public class DriveTracking extends Command {
 
     // track with the front limelight
     public static SwerveRequest LineUp(CommandSwerveDrivetrain drivetrain, LimeLight limelight) {
