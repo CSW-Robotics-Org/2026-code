@@ -1,4 +1,5 @@
 package frc.robot.subsystems;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
@@ -24,6 +25,8 @@ public class Turret extends SubsystemBase{
     private double turretRotation = 0;
     // this is our ficticous current rotation
     private double currentRot = 0;
+    // stores the encoder for the sparkmax
+    private RelativeEncoder rot_encoder;
 
     // creates the intake motor
     private SparkMax feed_motor;
@@ -35,11 +38,12 @@ public class Turret extends SubsystemBase{
         s1_motor = new SparkMax(s1_id, MotorType.kBrushless);
         s2_motor = new SparkMax(s2_id, MotorType.kBrushless);
         rot_motor = new SparkMax(rot_id, MotorType.kBrushless);
+        rot_encoder = rot_motor.getAlternateEncoder();
         feed_motor = new SparkMax(feed_id, MotorType.kBrushless);
     }
 
     // Sets the shooter motor speed
-    public void SetShooterMotor(double speed){
+    public void setShooterMotor(double speed){
         s1_motor.set(
             Math.min(s1MaxSpeed, speed)
         );
@@ -49,7 +53,7 @@ public class Turret extends SubsystemBase{
     }
 
     // Sets the turret motor speed
-    public void SetTurretMotor(double speed){
+    public void setTurretMotor(double speed){
         // if we are all the way to the right and we tell the turret to go right
         if ((turretRotation >= 85) && (speed > 0)){
             // freeze the rotational motor
@@ -70,7 +74,7 @@ public class Turret extends SubsystemBase{
         }
 
     // Sets the shooter motor speed
-    public void SetFeederMotor(double speed){
+    public void setFeederMotor(double speed){
         feed_motor.set(
             Math.min(fMaxSpeed, speed)
         );
@@ -79,6 +83,15 @@ public class Turret extends SubsystemBase{
      // Method that runs ~ every 20 ms
     public void periodic(){
         turretRotation = currentRot;
+
+        // some logic to make sure the robot doesnt overturn the turret.
+        if ((turretRotation <= -85) && ( rot_encoder.getVelocity() > 0)){
+            rot_motor.set(0);
+        }
+        if ((turretRotation >= 85) && ( rot_encoder.getVelocity() < 0)){
+            rot_motor.set(0);
+        }
+
     }
 
 

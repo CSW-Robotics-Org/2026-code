@@ -13,7 +13,7 @@ import frc.robot.subsystems.LimeLight;
 public class DriveTracking extends Command {
 
     // track with the front limelight
-    public static SwerveRequest LineUp(CommandSwerveDrivetrain drivetrain, LimeLight limelight) {
+    public static SwerveRequest lineUp(CommandSwerveDrivetrain drivetrain, LimeLight limelight) {
   
         return new SwerveRequest.RobotCentric() // Robot-centric mode
             .withVelocityX(
@@ -44,7 +44,7 @@ public class DriveTracking extends Command {
     }
 
     // track with the front limelight
-    public static SwerveRequest LineUpLeft(CommandSwerveDrivetrain drivetrain, LimeLight limelight) {
+    public static SwerveRequest lineUpLeft(CommandSwerveDrivetrain drivetrain, LimeLight limelight) {
   
         return new SwerveRequest.RobotCentric() // Robot-centric mode
             .withVelocityX(
@@ -74,7 +74,7 @@ public class DriveTracking extends Command {
             );
     }
 
-    public static Double PointAt(LimeLight limelight){
+    public static Double pointAt(LimeLight limelight){
        return (
             Math.copySign(
                 Math.min(

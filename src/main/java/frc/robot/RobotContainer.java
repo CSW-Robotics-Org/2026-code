@@ -80,7 +80,7 @@ public class RobotContainer {
         new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
 
         // Limelight tracking button
-        new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(()-> DriveTracking.LineUpLeft(drivetrain,limelight)));
+        new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(()-> DriveTracking.lineUpLeft(drivetrain,limelight)));
 
         // robot rel
         new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
@@ -96,7 +96,7 @@ public class RobotContainer {
             new SwerveRequest.RobotCentric()
                 .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
                 .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                .withRotationalRate(DriveTracking.PointAt(limelight))
+                .withRotationalRate(DriveTracking.pointAt(limelight))
         
         ));
 

@@ -28,14 +28,14 @@ public class Intake extends SubsystemBase{
     }
 
     // a method to set the motor speed for the intake
-    public void SetIntakeMotor(double speed){
+    public void setIntakeMotor(double speed){
         i_motor.set(
             Math.min(iMaxSpeed, speed)
         );
     }
 
     // a method to set the motor speed for the rotation motor
-    public void SetRotationMotor(double speed){
+    public void setRotationMotor(double speed){
         rot_motor.set(
             Math.min(rotMaxSpeed, speed)
         );
