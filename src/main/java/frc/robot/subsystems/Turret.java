@@ -10,8 +10,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Turret extends SubsystemBase{
   //creates shooter motor
     private SparkMax s_motor;
+     private SparkMax s_motor2;
+      private SparkMax feeder_motor;
     //stores max speed of the s_motor
     public double sMaxSpeed=1;
+    public double s2MaxSpeed=1;
+    public double fMaxSpeed=1;
     private SparkMax rot_motor;
    //creates turret rotation motor
   public double rMaxSpeed=1;
@@ -22,25 +26,45 @@ public class Turret extends SubsystemBase{
     // this is our ficticous current rotation
     private double currentRot = 0;
 
-   public Turret (int m_id1, int m_id2){
+   public Turret (int m_id1, int m_id2, int m_id3, int m_id4){
         s_motor = new SparkMax(m_id1, MotorType.kBrushless);
-        rot_motor = new SparkMax (m_id2,MotorType.kBrushless);
+        s_motor2 = new SparkMax(m_id2, MotorType.kBrushless);
+        rot_motor = new SparkMax (m_id3,MotorType.kBrushless);
+    feeder_motor= new SparkMax (m_id4,MotorType.kBrushless);
     }
 //sets the shooter motor speed
     public void SetShooter(double speed){
         s_motor.set(speed);
 Math.min(sMaxSpeed, speed);
     }
+        public void SetShooter2(double speed){
+        s_motor2.set(speed);
+Math.min(s2MaxSpeed, speed);
+    }
+        public void SetFeeder(double speed){
+        feeder_motor.set(speed);
+Math.min(fMaxSpeed, speed);
+    }
 //sets turret motor speed
      public void SetTurretMotor(double speed){
-        if(turretRotation >=85 && (speed > 0)){  s_motor.set(0);}
-     
-    }
+        if(turretRotation >=85 && (speed > 0)){
+            s_motor.set(0);
+        }
+        if(turretRotation >=-85 && (speed < 0)){  
+            s_motor.set(0);
+        }
+        else {
+          s_motor.set(speed);  
+        }
      s_motor.set(speed);
-Math.min(rMaxSpeed, speed);
+            Math.min(rMaxSpeed, speed);
+    
+     }
     //method that runs every 20 milliseconds (aproximite)
     public void periodic(){
         turretRotation = currentRot;
 
     }
+
+    
 }
