@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
@@ -22,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.LimeLightTracking;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LimeLight;
 
 public class RobotContainer {
@@ -46,7 +48,11 @@ public class RobotContainer {
 
     // creates our limelights
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0);
-
+    
+    // Create intake object:
+    // var type, custom name, = new vartype, class name(data we need to give it);
+    Intake m_intake = new Intake(1, 5);
+    // Created an intake object called m_intake, with slurp id of 1 and LtA id of 5
 
     public RobotContainer() {
         configureBindings();
@@ -64,6 +70,11 @@ public class RobotContainer {
                     .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
             )
         );
+
+        // Joystick button that slurps in fuel for our intake (ids may be changed)
+        new JoystickButton(r_joystick, 2)
+            .whileTrue(new InstantCommand(()-> m_intake.Set_Slurp(0.2)));
+
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.

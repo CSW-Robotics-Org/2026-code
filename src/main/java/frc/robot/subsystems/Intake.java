@@ -16,7 +16,7 @@ public class Intake extends SubsystemBase{
     public double max_AoR = 360;
     public double wanted_AoR; // don't set this to a number
 
-    public Intake (int slurp_id, int LtA_id) {
+    public Intake(int slurp_id, int LtA_id) {
         slurp_motor = new SparkMax(slurp_id, MotorType.kBrushless);
         LtA_motor = new SparkMax(LtA_id, MotorType.kBrushless);
     }
