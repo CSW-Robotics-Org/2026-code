@@ -6,13 +6,17 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.io.File;
 import java.util.logging.LogManager;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -48,6 +52,10 @@ public class RobotContainer {
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0);
 
 
+    // auto picker
+    private final SendableChooser<String> m_auto_chooser = new SendableChooser<>();
+
+
     public RobotContainer() {
         configureBindings();
     }
@@ -73,48 +81,65 @@ public class RobotContainer {
         );
 
 
-        // Theoretically resets the field reletive possitioning
-        new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
+
+
+
+        // ##### FILE MANAGER FOR AUTO PICKER ON SD #####
+
+        // get all the files in the pathplanner/autos dir
+        File[] files_in_deploy_folder = new File(
+        Filesystem.getDeployDirectory(),"pathplanner/autos").listFiles((dir, name) -> name.endsWith(".auto")
+        );
         
-        // Theoretically applies the break works great in the sim
-        new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
+        // and then add them to a list
+        for (File i_file : files_in_deploy_folder) {
+        if (i_file.isFile()) {
+            m_auto_chooser.addOption( // add option to SmartDashboard
+            i_file.getName().substring(0, i_file.getName().lastIndexOf(".")), // removed .auto
+            i_file.getName().substring(0, i_file.getName().lastIndexOf("."))
+            );
+        }
+        }
+        // put it on SmartDashboard
+        m_auto_chooser.setDefaultOption("Default", "Default");
+        SmartDashboard.putData("Auto Chooser", m_auto_chooser);
 
-        // Limelight tracking button
-        new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(()-> DriveTracking.lineUpLeft(drivetrain,limelight)));
 
-        // robot rel
-        new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
-            new SwerveRequest.RobotCentric()
-                .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
+
+
+
         
-        ));
 
-        // point at movement, i.e. we maintain robot 
-        new JoystickButton(r_joystick,6).whileTrue(drivetrain.applyRequest(()-> 
-            new SwerveRequest.RobotCentric()
-                .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                .withRotationalRate(DriveTracking.pointAt(limelight))
-        
-        ));
+        // ##### DRIVER CONTROLS #####
 
-        /** .a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        ));
+            // Theoretically resets the field reletive possitioning
+            new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+            
+            // Theoretically applies the break works great in the sim
+            new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
 
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+            // Limelight tracking button
+            new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(()-> DriveTracking.lineUpLeft(drivetrain,limelight)));
 
-        // Reset the field-centric heading on left bumper press.
-        joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-        */
+            // robot rel
+            new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
+                new SwerveRequest.RobotCentric()
+                    .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
+            
+            ));
+
+            // point at movement, i.e. we maintain robot 
+            new JoystickButton(r_joystick,6).whileTrue(drivetrain.applyRequest(()-> 
+                new SwerveRequest.RobotCentric()
+                    .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(DriveTracking.pointAt(limelight))
+            
+            ));
+
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }

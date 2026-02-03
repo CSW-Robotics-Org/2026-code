@@ -1,21 +1,21 @@
 package frc.robot.subsystems;
+import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Turret extends SubsystemBase{
     
     // Creates the shooter motor
-    private SparkMax s1_motor;
+    private SparkMax s_motor;
     // Stores the max speed of the s_motor
     public double s1MaxSpeed = 1;
-
-    // Creates the shooter motor
-    private SparkMax s2_motor;
-    // Stores the max speed of the s_motor
-    public double s2MaxSpeed = 1;
 
     // Creates the turret rotation motor
     private SparkMax rot_motor;
@@ -33,34 +33,43 @@ public class Turret extends SubsystemBase{
     // intake max speed
     public double fMaxSpeed = 1;
 
+    // creates the limit switches
+    private DigitalInput left_lim_switch = new DigitalInput(0);
+    private DigitalInput right_lim_switch = new DigitalInput(1);
+
     // The constructor that creates the motors
     public Turret(int s1_id,int s2_id, int rot_id, int feed_id){
-        s1_motor = new SparkMax(s1_id, MotorType.kBrushless);
-        s2_motor = new SparkMax(s2_id, MotorType.kBrushless);
+        s_motor = new SparkMax(s1_id, MotorType.kBrushless);
         rot_motor = new SparkMax(rot_id, MotorType.kBrushless);
         rot_encoder = rot_motor.getAlternateEncoder();
         feed_motor = new SparkMax(feed_id, MotorType.kBrushless);
+
+        // creates a new config for the motors
+        SparkMaxConfig config = new SparkMaxConfig();
+        config.idleMode(IdleMode.kBrake);
+
+        // applys the config to the motors
+        s_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        rot_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        feed_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     // Sets the shooter motor speed
     public void setShooterMotor(double speed){
-        s1_motor.set(
+        s_motor.set(
             Math.min(s1MaxSpeed, speed)
-        );
-        s2_motor.set(
-            -Math.min(s2MaxSpeed, speed)
         );
     }
 
     // Sets the turret motor speed
     public void setTurretMotor(double speed){
         // if we are all the way to the right and we tell the turret to go right
-        if ((turretRotation >= 85) && (speed > 0)){
+        if (((turretRotation >= 85) || right_lim_switch.get() == true) && (speed > 0)){
             // freeze the rotational motor
             rot_motor.set(0);
         }
          // if we are all the way to the left and we tell the turret to go left
-        else if ((turretRotation <= -85) && (speed < 0)){
+        else if (((turretRotation <= -85) || left_lim_switch.get() == true) && (speed < 0)){
             // freeze the rotational motor
             rot_motor.set(0);
         }
@@ -85,10 +94,10 @@ public class Turret extends SubsystemBase{
         turretRotation = currentRot;
 
         // some logic to make sure the robot doesnt overturn the turret.
-        if ((turretRotation <= -85) && ( rot_encoder.getVelocity() > 0)){
+        if (((turretRotation <= -85) || left_lim_switch.get() == true) && ( rot_encoder.getVelocity() > 0)){
             rot_motor.set(0);
         }
-        if ((turretRotation >= 85) && ( rot_encoder.getVelocity() < 0)){
+        if (((turretRotation >= 85) || right_lim_switch.get() == true) && ( rot_encoder.getVelocity() < 0)){
             rot_motor.set(0);
         }
 
