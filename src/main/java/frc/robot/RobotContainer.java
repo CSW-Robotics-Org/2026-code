@@ -12,7 +12,11 @@ import java.util.logging.LogManager;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+
+
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -27,6 +31,10 @@ import frc.robot.commands.DriveTracking;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.LimeLight;
+
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.FollowPathCommand;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -47,13 +55,16 @@ public class RobotContainer {
     private final CommandXboxController joystick = new CommandXboxController(2);
     private final Joystick l_joystick = new Joystick(0);
     private final Joystick r_joystick = new Joystick(1);
+    
 
+    // auto picker for sd
+    private final SendableChooser<String> m_auto_chooser = new SendableChooser<>();
+
+    // auto picker for command  /* Path follower */
+    private SendableChooser<Command> autoChooser;
+    
     // creates our limelights
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0);
-
-
-    // auto picker
-    private final SendableChooser<String> m_auto_chooser = new SendableChooser<>();
 
 
     public RobotContainer() {
@@ -83,8 +94,6 @@ public class RobotContainer {
 
 
 
-
-
         // ##### FILE MANAGER FOR AUTO PICKER ON SD #####
 
         // get all the files in the pathplanner/autos dir
@@ -104,11 +113,6 @@ public class RobotContainer {
         // put it on SmartDashboard
         m_auto_chooser.setDefaultOption("Default", "Default");
         SmartDashboard.putData("Auto Chooser", m_auto_chooser);
-
-
-
-
-
         
 
         // ##### DRIVER CONTROLS #####
@@ -145,21 +149,8 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        // Simple drive forward auton
-        final var idle = new SwerveRequest.Idle();
-        return Commands.sequence(
-            // Reset our field centric heading to match the robot
-            // facing away from our alliance station wall (0 deg).
-            drivetrain.runOnce(() -> drivetrain.seedFieldCentric(Rotation2d.kZero)),
-            // Then slowly drive forward (away from us) for 5 seconds.
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(0.5)
-                    .withVelocityY(0)
-                    .withRotationalRate(0)
-            )
-            .withTimeout(5.0),
-            // Finally idle for the rest of auton
-            drivetrain.applyRequest(() -> idle)
-        );
-    }
+        autoChooser = AutoBuilder.buildAutoChooser("Default");
+        return autoChooser.getSelected();
+    }   
 }
+
