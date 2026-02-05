@@ -12,8 +12,7 @@ import java.util.logging.LogManager;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-
-
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -55,10 +54,7 @@ public class RobotContainer {
     private final CommandXboxController operator = new CommandXboxController(2);
     private final Joystick l_joystick = new Joystick(0);
     private final Joystick r_joystick = new Joystick(1);
-    
 
-    // auto picker for sd
-    private final SendableChooser<String> m_auto_chooser = new SendableChooser<>();
 
     // auto picker for command  /* Path follower */
     private SendableChooser<Command> autoChooser;
@@ -69,6 +65,10 @@ public class RobotContainer {
 
     public RobotContainer() {
         configureBindings();
+
+        autoChooser = AutoBuilder.buildAutoChooser("Default");
+        SmartDashboard.putData("Auto Mode", autoChooser);
+        FollowPathCommand.warmupCommand().schedule();
     }
 
     private void configureBindings() {
@@ -93,28 +93,6 @@ public class RobotContainer {
 
 
 
-
-        // ##### FILE MANAGER FOR AUTO PICKER ON SD #####
-
-            // get all the files in the pathplanner/autos dir
-            File[] files_in_deploy_folder = new File(
-            Filesystem.getDeployDirectory(),"pathplanner/autos").listFiles((dir, name) -> name.endsWith(".auto")
-            );
-            
-            // and then add them to a list
-            for (File i_file : files_in_deploy_folder) {
-            if (i_file.isFile()) {
-                m_auto_chooser.addOption( // add option to SmartDashboard
-                i_file.getName().substring(0, i_file.getName().lastIndexOf(".")), // removed .auto
-                i_file.getName().substring(0, i_file.getName().lastIndexOf("."))
-                );
-            }
-            }
-            // put it on SmartDashboard
-            m_auto_chooser.setDefaultOption("Default", "Default");
-            SmartDashboard.putData("Auto Chooser", m_auto_chooser);
-        
-
         // ##### DRIVER CONTROLS #####
 
             // Theoretically resets the field reletive possitioning
@@ -122,9 +100,6 @@ public class RobotContainer {
             
             // Theoretically applies the break works great in the sim
             new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
-
-            // Limelight tracking button
-            new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(()-> DriveTracking.lineUpLeft(drivetrain,limelight)));
 
             // robot rel
             new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
@@ -144,7 +119,6 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        autoChooser = AutoBuilder.buildAutoChooser("Default");
         return autoChooser.getSelected();
     }   
 }
