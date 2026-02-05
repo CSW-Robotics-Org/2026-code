@@ -52,7 +52,7 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     // creates our controllers
-    private final CommandXboxController joystick = new CommandXboxController(2);
+    private final CommandXboxController operator = new CommandXboxController(2);
     private final Joystick l_joystick = new Joystick(0);
     private final Joystick r_joystick = new Joystick(1);
     
@@ -96,23 +96,23 @@ public class RobotContainer {
 
         // ##### FILE MANAGER FOR AUTO PICKER ON SD #####
 
-        // get all the files in the pathplanner/autos dir
-        File[] files_in_deploy_folder = new File(
-        Filesystem.getDeployDirectory(),"pathplanner/autos").listFiles((dir, name) -> name.endsWith(".auto")
-        );
-        
-        // and then add them to a list
-        for (File i_file : files_in_deploy_folder) {
-        if (i_file.isFile()) {
-            m_auto_chooser.addOption( // add option to SmartDashboard
-            i_file.getName().substring(0, i_file.getName().lastIndexOf(".")), // removed .auto
-            i_file.getName().substring(0, i_file.getName().lastIndexOf("."))
+            // get all the files in the pathplanner/autos dir
+            File[] files_in_deploy_folder = new File(
+            Filesystem.getDeployDirectory(),"pathplanner/autos").listFiles((dir, name) -> name.endsWith(".auto")
             );
-        }
-        }
-        // put it on SmartDashboard
-        m_auto_chooser.setDefaultOption("Default", "Default");
-        SmartDashboard.putData("Auto Chooser", m_auto_chooser);
+            
+            // and then add them to a list
+            for (File i_file : files_in_deploy_folder) {
+            if (i_file.isFile()) {
+                m_auto_chooser.addOption( // add option to SmartDashboard
+                i_file.getName().substring(0, i_file.getName().lastIndexOf(".")), // removed .auto
+                i_file.getName().substring(0, i_file.getName().lastIndexOf("."))
+                );
+            }
+            }
+            // put it on SmartDashboard
+            m_auto_chooser.setDefaultOption("Default", "Default");
+            SmartDashboard.putData("Auto Chooser", m_auto_chooser);
         
 
         // ##### DRIVER CONTROLS #####
@@ -135,14 +135,9 @@ public class RobotContainer {
             
             ));
 
-            // point at movement, i.e. we maintain robot 
-            new JoystickButton(r_joystick,6).whileTrue(drivetrain.applyRequest(()-> 
-                new SwerveRequest.RobotCentric()
-                    .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(DriveTracking.pointAt(limelight))
-            
-            ));
+         // ##### OPERATOR CONTROLS #####
+
+         // moves the turret based off of the y axis
 
 
         drivetrain.registerTelemetry(logger::telemeterize);
