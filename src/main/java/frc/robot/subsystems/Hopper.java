@@ -24,14 +24,14 @@ public class Hopper extends SubsystemBase{
     }
 
     // a method to set the motor speed for the rollers
-    public void SetRollerMotor(double speed){
+    public void setRollerMotor(double speed){
         roller_motor.set(
             Math.min(rMaxSpeed, speed)
         );
     }
 
     // a method to set the motor speed for the rollers
-    public void SetPreFeederMotor(double speed){
+    public void setPreFeederMotor(double speed){
         prefeed_motor.set(
             Math.min(pMaxSpeed, speed)
         );

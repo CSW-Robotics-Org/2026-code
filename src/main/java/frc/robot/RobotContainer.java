@@ -6,13 +6,21 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.io.File;
 import java.util.logging.LogManager;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+
+
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -23,6 +31,10 @@ import frc.robot.commands.DriveTracking;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.LimeLight;
+
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.FollowPathCommand;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -40,10 +52,17 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     // creates our controllers
-    private final CommandXboxController joystick = new CommandXboxController(2);
+    private final CommandXboxController operator = new CommandXboxController(2);
     private final Joystick l_joystick = new Joystick(0);
     private final Joystick r_joystick = new Joystick(1);
+    
 
+    // auto picker for sd
+    private final SendableChooser<String> m_auto_chooser = new SendableChooser<>();
+
+    // auto picker for command  /* Path follower */
+    private SendableChooser<Command> autoChooser;
+    
     // creates our limelights
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0);
 
@@ -73,68 +92,60 @@ public class RobotContainer {
         );
 
 
-        // Theoretically resets the field reletive possitioning
-        new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+
+
+        // ##### FILE MANAGER FOR AUTO PICKER ON SD #####
+
+            // get all the files in the pathplanner/autos dir
+            File[] files_in_deploy_folder = new File(
+            Filesystem.getDeployDirectory(),"pathplanner/autos").listFiles((dir, name) -> name.endsWith(".auto")
+            );
+            
+            // and then add them to a list
+            for (File i_file : files_in_deploy_folder) {
+            if (i_file.isFile()) {
+                m_auto_chooser.addOption( // add option to SmartDashboard
+                i_file.getName().substring(0, i_file.getName().lastIndexOf(".")), // removed .auto
+                i_file.getName().substring(0, i_file.getName().lastIndexOf("."))
+                );
+            }
+            }
+            // put it on SmartDashboard
+            m_auto_chooser.setDefaultOption("Default", "Default");
+            SmartDashboard.putData("Auto Chooser", m_auto_chooser);
         
-        // Theoretically applies the break works great in the sim
-        new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
 
-        // Limelight tracking button
-        new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(()-> DriveTracking.LineUpLeft(drivetrain,limelight)));
+        // ##### DRIVER CONTROLS #####
 
-        // robot rel
-        new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
-            new SwerveRequest.RobotCentric()
-                .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
-        
-        ));
+            // Theoretically resets the field reletive possitioning
+            new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+            
+            // Theoretically applies the break works great in the sim
+            new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
 
-        // point at movement, i.e. we maintain robot 
-        new JoystickButton(r_joystick,6).whileTrue(drivetrain.applyRequest(()-> 
-            new SwerveRequest.RobotCentric()
-                .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                .withRotationalRate(DriveTracking.PointAt(limelight))
-        
-        ));
+            // Limelight tracking button
+            new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(()-> DriveTracking.lineUpLeft(drivetrain,limelight)));
 
-        /** .a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        ));
+            // robot rel
+            new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
+                new SwerveRequest.RobotCentric()
+                    .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
+            
+            ));
 
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+         // ##### OPERATOR CONTROLS #####
 
-        // Reset the field-centric heading on left bumper press.
-        joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-        */
+         // moves the turret based off of the y axis
+
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public Command getAutonomousCommand() {
-        // Simple drive forward auton
-        final var idle = new SwerveRequest.Idle();
-        return Commands.sequence(
-            // Reset our field centric heading to match the robot
-            // facing away from our alliance station wall (0 deg).
-            drivetrain.runOnce(() -> drivetrain.seedFieldCentric(Rotation2d.kZero)),
-            // Then slowly drive forward (away from us) for 5 seconds.
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(0.5)
-                    .withVelocityY(0)
-                    .withRotationalRate(0)
-            )
-            .withTimeout(5.0),
-            // Finally idle for the rest of auton
-            drivetrain.applyRequest(() -> idle)
-        );
-    }
+        autoChooser = AutoBuilder.buildAutoChooser("Default");
+        return autoChooser.getSelected();
+    }   
 }
+
