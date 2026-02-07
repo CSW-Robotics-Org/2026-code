@@ -29,7 +29,7 @@ public class TurretTracking extends Command {
             new Rotation3d(
                 Math.toRadians(limelight.targetPoseRobotSpace[3]),
                 Math.toRadians(limelight.targetPoseRobotSpace[4]),
-                Math.toRadians(limelight.targetPoseRobotSpace[5]),
+                Math.toRadians(limelight.targetPoseRobotSpace[5])
             )
         );
 
