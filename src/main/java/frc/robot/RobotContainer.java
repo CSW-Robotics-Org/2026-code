@@ -18,19 +18,22 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveTracking;
+import frc.robot.commands.TurretTracking;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.LimeLight;
-
+import frc.robot.subsystems.Turret;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.FollowPathCommand;
@@ -51,9 +54,11 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     // creates our controllers
-    private final CommandXboxController operator = new CommandXboxController(2);
+    private final XboxController operator = new XboxController(2);
     private final Joystick l_joystick = new Joystick(0);
     private final Joystick r_joystick = new Joystick(1);
+
+    private final Turret m_turret = new Turret(0, 0, 0, 0);
 
 
     // auto picker for command  /* Path follower */
@@ -112,7 +117,19 @@ public class RobotContainer {
 
          // ##### OPERATOR CONTROLS #####
 
-         // moves the turret based off of the y axis
+         // moves the turret on shoulder buttons
+            // moves turret to the left
+            new JoystickButton(operator, 5)
+                .onTrue(new InstantCommand(()->m_turret.setTurretMotor(-0.1)))
+                .onFalse(new InstantCommand(()->m_turret.setTurretMotor(0)));
+
+            // moves turret to the right
+            new JoystickButton(operator, 6)
+                .onTrue(new InstantCommand(()->m_turret.setTurretMotor(0.1)))
+                .onFalse(new InstantCommand(()->m_turret.setTurretMotor(0)));
+
+            // runs the autotracking command for the turret on button B
+            new JoystickButton(operator,3).whileTrue(TurretTracking.lineUpHub(m_turret,limelight));
 
 
         drivetrain.registerTelemetry(logger::telemeterize);
