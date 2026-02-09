@@ -129,7 +129,9 @@ public class RobotContainer {
                 .onFalse(new InstantCommand(()->m_turret.setTurretMotor(0)));
 
             // runs the autotracking command for the turret on button B
-            new JoystickButton(operator,3).whileTrue(TurretTracking.lineUpHub(m_turret,limelight));
+            new JoystickButton(operator,3)
+                .whileTrue(new InstantCommand(()-> m_turret.setTurretMotor(TurretTracking.lineUpHub(limelight))))
+                .onFalse(new InstantCommand(()-> m_turret.setTurretMotor(0)));
 
 
         drivetrain.registerTelemetry(logger::telemeterize);

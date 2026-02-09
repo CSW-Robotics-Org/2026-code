@@ -20,7 +20,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 
 public class TurretTracking extends Command {
 
-    public static Command lineUpHub(Turret turret, LimeLight limelight){
+    public static Double lineUpHub(LimeLight limelight){
         // the tag position
         Pose3d tagPos = new Pose3d(
             limelight.targetPoseRobotSpace[0],
@@ -73,7 +73,7 @@ public class TurretTracking extends Command {
         // clamps the speed
         turretSpeed = MathUtil.clamp(turretSpeed, -0.35, 0.35);
 
-        turret.setTurretMotor(turretSpeed);
+        return turretSpeed;
        
 
     }
