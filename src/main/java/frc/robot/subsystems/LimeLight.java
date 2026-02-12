@@ -29,7 +29,6 @@ public class LimeLight extends SubsystemBase {
         this.rotoffset = rotoffset;
     }
 
-
     // 3d AT data
     public double[] targetPosCameraSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("targetpose_cameraspace").getDoubleArray(new double[6]);
 

@@ -12,6 +12,7 @@ import java.util.logging.LogManager;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -54,11 +55,9 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     // creates our controllers
-    private final XboxController operator = new XboxController(2);
+    private final XboxController m_operator = new XboxController(2);
     private final Joystick l_joystick = new Joystick(0);
     private final Joystick r_joystick = new Joystick(1);
-
-    private final Turret m_turret = new Turret(0, 0, 0, 0);
 
 
     // auto picker for command  /* Path follower */
@@ -66,6 +65,7 @@ public class RobotContainer {
     
     // creates our limelights
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0);
+    public final Turret m_turret = new Turret(15, 0, 0,limelight);
 
 
     public RobotContainer() {
@@ -83,9 +83,12 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
+                // drive.withVelocityX(r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
+                //     .withVelocityY(r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
+                //     .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
+                drive.withVelocityX(0) // Drive forward with negative Y (forward)
+                    .withVelocityY(0) // Drive left with negative X (left)
+                    .withRotationalRate(0)
             )
         );
 
@@ -117,21 +120,11 @@ public class RobotContainer {
 
          // ##### OPERATOR CONTROLS #####
 
-         // moves the turret on shoulder buttons
-            // moves turret to the left
-            new JoystickButton(operator, 5)
-                .onTrue(new InstantCommand(()->m_turret.setTurretMotor(-0.1)))
-                .onFalse(new InstantCommand(()->m_turret.setTurretMotor(0)));
+         // moves the turret based off of the y axis
 
-            // moves turret to the right
-            new JoystickButton(operator, 6)
-                .onTrue(new InstantCommand(()->m_turret.setTurretMotor(0.1)))
-                .onFalse(new InstantCommand(()->m_turret.setTurretMotor(0)));
-
-            // runs the autotracking command for the turret on button B
-            new JoystickButton(operator,3)
-                .whileTrue(new InstantCommand(()-> m_turret.setTurretMotor(TurretTracking.lineUpHub(limelight))))
-                .onFalse(new InstantCommand(()-> m_turret.setTurretMotor(0)));
+        new JoystickButton(m_operator,4)
+            .onTrue(new InstantCommand(()-> m_turret.shouldShoot = true))
+            .onFalse(new InstantCommand(()-> m_turret.shouldShoot = false));
 
 
         drivetrain.registerTelemetry(logger::telemeterize);
@@ -140,5 +133,6 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
     }   
+
 }
 

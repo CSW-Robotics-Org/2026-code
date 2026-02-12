@@ -12,6 +12,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.commands.TurretTracking;
 
 public class Turret extends SubsystemBase{
     
@@ -23,6 +24,8 @@ public class Turret extends SubsystemBase{
     private RelativeEncoder s_encoder;
     // stores the target rpm
     private double targetRPM = 0;
+    
+    public Boolean shouldShoot = false;
 
 
     // Creates the turret rotation motor
@@ -41,6 +44,8 @@ public class Turret extends SubsystemBase{
     // intake max speed
     public double fMaxSpeed = 1;
 
+    private LimeLight limelight;
+
     // creates the limit switches
     private DigitalInput left_lim_switch = new DigitalInput(0);
     private DigitalInput right_lim_switch = new DigitalInput(1);
@@ -51,20 +56,23 @@ public class Turret extends SubsystemBase{
     private SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(0.2, 0.0021);
 
     // The constructor that creates the motors
-    public Turret(int s1_id,int s2_id, int rot_id, int feed_id){
+    public Turret(int s1_id, int rot_id, int feed_id, LimeLight limelight){
         s_motor = new SparkMax(s1_id, MotorType.kBrushless);
         s_encoder = s_motor.getEncoder();
-        rot_motor = new SparkMax(rot_id, MotorType.kBrushless);
-        rot_encoder = rot_motor.getEncoder();
-        feed_motor = new SparkMax(feed_id, MotorType.kBrushless);
+        // rot_motor = new SparkMax(rot_id, MotorType.kBrushless);
+        // rot_encoder = rot_motor.getEncoder();
+        // feed_motor = new SparkMax(feed_id, MotorType.kBrushless);
 
-        // creates a new config for the motors
-        SparkMaxConfig config = new SparkMaxConfig();
-        config.idleMode(IdleMode.kBrake);
+        // // creates a new config for the motors
+        // SparkMaxConfig config = new SparkMaxConfig();
+        // config.idleMode(IdleMode.kBrake);
 
-        // applys the config to the motors
-        rot_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        feed_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        // // applys the config to the motors
+        // rot_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        // feed_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        this.limelight = limelight;
+
     }
 
     // Sets the shooter motor speed
@@ -103,15 +111,15 @@ public class Turret extends SubsystemBase{
 
      // Method that runs ~ every 20 ms
     public void periodic(){
-        turretRotation = currentRot;
+        // turretRotation = currentRot;
 
-        // some logic to make sure the robot doesnt overturn the turret.
-        if (((turretRotation <= -85) || left_lim_switch.get() == true) && ( rot_encoder.getVelocity() > 0)){
-            rot_motor.set(0);
-        }
-        if (((turretRotation >= 85) || right_lim_switch.get() == true) && ( rot_encoder.getVelocity() < 0)){
-            rot_motor.set(0);
-        }
+        // // some logic to make sure the robot doesnt overturn the turret.
+        // if (((turretRotation <= -85) || left_lim_switch.get() == true) && ( rot_encoder.getVelocity() > 0)){
+        //     rot_motor.set(0);
+        // }
+        // if (((turretRotation >= 85) || right_lim_switch.get() == true) && ( rot_encoder.getVelocity() < 0)){
+        //     rot_motor.set(0);
+        // }
 
         double currentRPM = s_encoder.getVelocity();
         double pidOutput = shooterPID.calculate(currentRPM,targetRPM);
@@ -119,9 +127,16 @@ public class Turret extends SubsystemBase{
         double voltage = pidOutput + ffOutput;
         voltage = MathUtil.clamp(voltage, -12, 12);
         s_motor.setVoltage(voltage);
+        // System.out.println(targetRPM);
+        // System.out.println(currentRPM);
+
+        if (shouldShoot){
+        this.setShooterMotor(TurretTracking.ShooterPower(limelight));
+        }
+        else{
+            this.setShooterMotor(0);
+        }
 
     }
-
-
     
 }

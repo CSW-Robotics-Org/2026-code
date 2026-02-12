@@ -20,7 +20,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 
 public class TurretTracking extends Command {
 
-    public static Double lineUpHub(LimeLight limelight){
+    public static Double TurretLineup(LimeLight limelight){
         // the tag position
         Pose3d tagPos = new Pose3d(
             limelight.targetPoseRobotSpace[0],
@@ -75,6 +75,42 @@ public class TurretTracking extends Command {
 
         return turretSpeed;
        
+
+    }
+
+    public static Double ShooterPower(LimeLight limelight){
+
+        Pose3d tagPos = new Pose3d(
+            limelight.targetPoseRobotSpace[0],
+            limelight.targetPoseRobotSpace[1],
+            limelight.targetPoseRobotSpace[2],
+            new Rotation3d(
+                Math.toRadians(limelight.targetPoseRobotSpace[3]),
+                Math.toRadians(limelight.targetPoseRobotSpace[4]),
+                Math.toRadians(limelight.targetPoseRobotSpace[5])
+            )
+        );
+
+        // translation of the tag to the center of the box
+        Transform3d tagToBoxCenter = new Transform3d(
+            new Translation3d(
+                -0.5969,
+                0,
+                0
+            ),
+            new Rotation3d()   
+        );
+
+        // transforms the tag position by the tag to box center transformation
+        Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
+
+        // the angle offset we want
+        double targetDistance = boxCenterPos.getZ();
+
+        double shooterPow = 0.453 + 0.0199*targetDistance + 0.00347*(Math.pow(targetDistance, 2));
+
+
+        return shooterPow;
 
     }
 
