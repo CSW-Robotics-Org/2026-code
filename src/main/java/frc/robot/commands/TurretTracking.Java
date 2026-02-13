@@ -4,114 +4,133 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.RobotContainer;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.LimeLight;
 import frc.robot.subsystems.Turret;
-import edu.wpi.first.math.geometry.Translation3d;
 
+public class TurretTracking extends Command{
 
+    private static final PIDController turretPID = new PIDController(0.02, 0, 0.0);
 
-public class TurretTracking extends Command {
-
-    public static Double TurretLineup(LimeLight limelight){
-        // the tag position
-        Pose3d tagPos = new Pose3d(
-            limelight.targetPoseRobotSpace[0],
-            limelight.targetPoseRobotSpace[1],
-            limelight.targetPoseRobotSpace[2],
-            new Rotation3d(
-                Math.toRadians(limelight.targetPoseRobotSpace[3]),
-                Math.toRadians(limelight.targetPoseRobotSpace[4]),
-                Math.toRadians(limelight.targetPoseRobotSpace[5])
-            )
-        );
-
-        // translation of the tag to the center of the box
-        Transform3d tagToBoxCenter = new Transform3d(
-            new Translation3d(
-                -0.5969,
-                0,
-                0
-            ),
-            new Rotation3d()   
-        );
-
-        // transforms the tag position by the tag to box center transformation
-        Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
-
-        // the angle offset we want
-        double targetAngle = Math.toDegrees(
-            Math.atan2(
-                boxCenterPos.getX(),
-                boxCenterPos.getY()
-            )
-        );
-
-
-        PIDController turretPID = new PIDController(
-            0.02,   // kP
-            0.0,    // kI
-            0.00   // kD
-        );
-
+    static {
         turretPID.enableContinuousInput(-180.0, 180.0);
-        turretPID.setTolerance(0.75); // degrees
+        turretPID.setTolerance(0.75);
+    }
 
-        // calculates the speed we need
-        double turretSpeed = turretPID.calculate(
-            targetAngle, 
-            0.0             
-        );
+    // Hub position (meters)
+    private static final double HUB_X = 8.27;   // lateral
+    private static final double HUB_Z = 4.03;   // forward
 
-        // clamps the speed
+    /** Returns turret speed using Limelight or robot pose */
+    public static double TurretLineup(LimeLight limelight, CommandSwerveDrivetrain drivetrain,Turret turret) {
+
+        Translation3d targetPos;
+        double targetAngle = 0;
+
+        if (limelight.tv == 1) {
+            // Use Limelight
+            Pose3d tagPos = new Pose3d(
+                limelight.targetPoseRobotSpace[0],
+                limelight.targetPoseRobotSpace[1],
+                limelight.targetPoseRobotSpace[2],
+                new Rotation3d(
+                    Math.toRadians(limelight.targetPoseRobotSpace[3]),
+                    Math.toRadians(limelight.targetPoseRobotSpace[4]),
+                    Math.toRadians(limelight.targetPoseRobotSpace[5])
+                )
+            );
+
+            Transform3d tagToBoxCenter = new Transform3d(
+                new Translation3d(-0.5969, 0, 0),
+                new Rotation3d()
+            );
+
+            Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
+            targetPos = boxCenterPos.getTranslation();
+            targetAngle = Math.toDegrees(Math.atan2(targetPos.getX(), targetPos.getZ()));
+
+        } else {
+            double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
+            double turretYaw = Math.toRadians(turret.getAngle());
+
+            double totalYaw = robotYaw + turretYaw;
+
+            // rotate relative vector to hub
+            double xRel = HUB_X - drivetrain.getState().Pose.getX();
+            double zRel = HUB_Z - drivetrain.getState().Pose.getY();
+
+            double xRot = xRel * Math.cos(totalYaw) - zRel * Math.sin(totalYaw);
+            double zRot = xRel * Math.sin(totalYaw) + zRel * Math.cos(totalYaw);
+
+
+            targetPos = new Translation3d(xRel, 0, zRel); // ignore Y
+
+            targetAngle = Math.toDegrees(Math.atan2(xRot, zRot));
+        }
+
+        double turretSpeed = turretPID.calculate(targetAngle, 0.0);
         turretSpeed = MathUtil.clamp(turretSpeed, -0.35, 0.35);
 
         return turretSpeed;
-       
-
     }
 
-    public static Double ShooterPower(LimeLight limelight){
+    /** Returns shooter power using Limelight or robot pose */
+    public static double ShooterPower(LimeLight limelight, CommandSwerveDrivetrain drivetrain,Turret turret) {
 
-        Pose3d tagPos = new Pose3d(
-            limelight.targetPoseRobotSpace[0],
-            limelight.targetPoseRobotSpace[1],
-            limelight.targetPoseRobotSpace[2],
-            new Rotation3d(
-                Math.toRadians(limelight.targetPoseRobotSpace[3]),
-                Math.toRadians(limelight.targetPoseRobotSpace[4]),
-                Math.toRadians(limelight.targetPoseRobotSpace[5])
-            )
-        );
+        Translation3d targetPos;
+        double targetDistance = 0;
 
-        // translation of the tag to the center of the box
-        Transform3d tagToBoxCenter = new Transform3d(
-            new Translation3d(
-                -0.5969,
-                0,
-                0
-            ),
-            new Rotation3d()   
-        );
+        if (limelight.tv == 1) {
+            Pose3d tagPos = new Pose3d(
+                limelight.targetPoseRobotSpace[0],
+                limelight.targetPoseRobotSpace[1],
+                limelight.targetPoseRobotSpace[2],
+                new Rotation3d(
+                    Math.toRadians(limelight.targetPoseRobotSpace[3]),
+                    Math.toRadians(limelight.targetPoseRobotSpace[4]),
+                    Math.toRadians(limelight.targetPoseRobotSpace[5])
+                )
+            );
 
-        // transforms the tag position by the tag to box center transformation
-        Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
+            Transform3d tagToBoxCenter = new Transform3d(
+                new Translation3d(-0.5969, 0, 0),
+                new Rotation3d()
+            );
 
-        // the angle offset we want
-        double targetDistance = boxCenterPos.getZ();
+            Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
+            targetPos = boxCenterPos.getTranslation();
+            // stores the target distance
+            targetDistance = Math.hypot(targetPos.getX(), targetPos.getZ());
 
-        double shooterPow = 0.453 + 0.0199*targetDistance + 0.00347*(Math.pow(targetDistance, 2));
+        } else {
+            double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
+            double turretYaw = Math.toRadians(turret.getAngle());
 
+            double totalYaw = robotYaw + turretYaw;
+
+            // rotate relative vector to hub
+            double xRel = HUB_X - drivetrain.getState().Pose.getX();
+            double zRel = HUB_Z - drivetrain.getState().Pose.getY();
+
+            double xRot = xRel * Math.cos(totalYaw) - zRel * Math.sin(totalYaw);
+            double zRot = xRel * Math.sin(totalYaw) + zRel * Math.cos(totalYaw);
+
+
+            targetPos = new Translation3d(xRel, 0, zRel); // ignore Y
+
+            // stores the target distance
+            targetDistance = Math.hypot(xRot, zRot);
+        }
+
+        // Quadratic formula for shooter power
+        double shooterPow = 0.453 + 0.0199 * targetDistance + 0.00347 * Math.pow(targetDistance, 2);
 
         return shooterPow;
-
     }
-
 }

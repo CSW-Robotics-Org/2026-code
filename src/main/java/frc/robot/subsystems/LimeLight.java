@@ -30,6 +30,8 @@ public class LimeLight extends SubsystemBase {
     }
 
     // 3d AT data
+    public double tv = NetworkTableInstance.getDefault().getTable("limelight").getEntry("<variablename>").getDouble(0);
+
     public double[] targetPosCameraSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("targetpose_cameraspace").getDoubleArray(new double[6]);
 
     public double[] botPos = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("botpose").getDoubleArray(new double[6]);
@@ -52,6 +54,8 @@ public class LimeLight extends SubsystemBase {
         botPos = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("botpose").getDoubleArray(new double[6]);
 
         targetPoseRobotSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("targetpose_robotspace").getDoubleArray(new double[6]);
+
+        tv = NetworkTableInstance.getDefault().getTable("limelight").getEntry("<variablename>").getDouble(0);
 
 
     }

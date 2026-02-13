@@ -56,7 +56,7 @@ public class Turret extends SubsystemBase{
     private SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(0.2, 0.0021);
 
     // The constructor that creates the motors
-    public Turret(int s1_id, int rot_id, int feed_id, LimeLight limelight){
+    public Turret(int s1_id, int rot_id, int feed_id){
         s_motor = new SparkMax(s1_id, MotorType.kBrushless);
         s_encoder = s_motor.getEncoder();
         // rot_motor = new SparkMax(rot_id, MotorType.kBrushless);
@@ -70,8 +70,6 @@ public class Turret extends SubsystemBase{
         // // applys the config to the motors
         // rot_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         // feed_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        this.limelight = limelight;
 
     }
 
@@ -127,16 +125,11 @@ public class Turret extends SubsystemBase{
         double voltage = pidOutput + ffOutput;
         voltage = MathUtil.clamp(voltage, -12, 12);
         s_motor.setVoltage(voltage);
-        // System.out.println(targetRPM);
-        // System.out.println(currentRPM);
 
-        if (shouldShoot){
-        this.setShooterMotor(TurretTracking.ShooterPower(limelight));
-        }
-        else{
-            this.setShooterMotor(0);
-        }
+    }
 
+    public double getAngle() {
+        return 0;
     }
     
 }

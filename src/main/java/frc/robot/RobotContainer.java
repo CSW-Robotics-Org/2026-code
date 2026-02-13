@@ -65,7 +65,7 @@ public class RobotContainer {
     
     // creates our limelights
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0);
-    public final Turret m_turret = new Turret(15, 0, 0,limelight);
+    public final Turret m_turret = new Turret(15, 0, 0);
 
 
     public RobotContainer() {
@@ -125,6 +125,9 @@ public class RobotContainer {
         new JoystickButton(m_operator,4)
             .onTrue(new InstantCommand(()-> m_turret.shouldShoot = true))
             .onFalse(new InstantCommand(()-> m_turret.shouldShoot = false));
+
+        new JoystickButton(m_operator, XboxController.Button.kRightBumper.value)
+            .whileTrue(new InstantCommand(()->m_turret.setShooterMotor(TurretTracking.ShooterPower(limelight,drivetrain,m_turret)) ));
 
 
         drivetrain.registerTelemetry(logger::telemeterize);
