@@ -64,8 +64,9 @@ public class RobotContainer {
     private SendableChooser<Command> autoChooser;
     
     // creates our limelights
-    public final LimeLight limelight = new LimeLight("limelight-front",0,0,0);
     public final Turret m_turret = new Turret(15, 0, 0);
+    public final LimeLight limelight = new LimeLight("limelight-front",0,0,0,drivetrain,m_turret);
+    
 
         public Command TurretTrackingCommand = new frc.robot.commands.TurretTrackingCommand(m_turret,limelight,drivetrain);
 
