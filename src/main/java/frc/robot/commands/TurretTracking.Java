@@ -74,7 +74,7 @@ public class TurretTracking extends Command{
             targetAngle = Math.toDegrees(Math.atan2(xRot, zRot));
         }
 
-        double turretSpeed = turretPID.calculate(targetAngle, 0.0);
+        double turretSpeed = turretPID.calculate(targetAngle,turret.getAngle());
         turretSpeed = MathUtil.clamp(turretSpeed, -0.35, 0.35);
 
         return turretSpeed;
