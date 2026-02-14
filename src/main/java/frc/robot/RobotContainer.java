@@ -37,6 +37,7 @@ import frc.robot.subsystems.LimeLight;
 import frc.robot.subsystems.Turret;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
 
 public class RobotContainer {
@@ -68,7 +69,7 @@ public class RobotContainer {
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0,drivetrain,m_turret);
     
 
-        public Command TurretTrackingCommand = new frc.robot.commands.TurretTrackingCommand(m_turret,limelight,drivetrain);
+        public Command TrackingCommand = new frc.robot.commands.TurretTrackingCommand(m_turret,limelight,drivetrain);
 
 
     public RobotContainer() {
@@ -102,6 +103,19 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
+        // Freeze wheels command
+        NamedCommands.registerCommand("FreezeWheels", 
+            new InstantCommand(()-> 
+                drivetrain.applyRequest(()-> 
+                    drive.withVelocityX(0)
+                    .withVelocityY(0)
+                    .withRotationalRate(0)) 
+            )
+        );
+
+        // Named command for shooting
+        NamedCommands.registerCommand("Shoot", new InstantCommand(()-> TrackingCommand.execute()));
+
 
 
         // ##### DRIVER CONTROLS #####
@@ -123,7 +137,7 @@ public class RobotContainer {
 
          // ##### OPERATOR CONTROLS #####
             new JoystickButton(m_operator, 4)
-                .whileTrue(TurretTrackingCommand);
+                .whileTrue(TrackingCommand);
 
 
         drivetrain.registerTelemetry(logger::telemeterize);
