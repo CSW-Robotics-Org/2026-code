@@ -4,13 +4,13 @@ import frc.robot.subsystems.LimeLight;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
-public class TurretTrackingCommand extends Command {
+public class TurretRotationCommand extends Command {
 
     private final Turret turret;
     private final LimeLight limelight;
     private final CommandSwerveDrivetrain drivetrain;
 
-    public TurretTrackingCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain) {
+    public TurretRotationCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain) {
         this.turret = turret;
         this.limelight = limelight;
         this.drivetrain = drivetrain;

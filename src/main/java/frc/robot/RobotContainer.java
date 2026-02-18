@@ -119,9 +119,9 @@ public class RobotContainer {
             )
         );
 
-
         // Named command for shooting
         NamedCommands.registerCommand("Shoot", TrackingCommand);
+        
         // Named command that shoots balls from hopper through shooter
         NamedCommands.registerCommand("FeedAndShoot", 
             new SequentialCommandGroup(
@@ -130,6 +130,8 @@ public class RobotContainer {
                 TrackingCommand
             )
         );
+
+       
 
 
 
