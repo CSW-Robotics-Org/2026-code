@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
@@ -33,6 +34,7 @@ import frc.robot.commands.DriveTracking;
 import frc.robot.commands.TurretTracking;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.LimeLight;
 import frc.robot.subsystems.Turret;
 
@@ -63,13 +65,17 @@ public class RobotContainer {
 
     // auto picker for command  /* Path follower */
     private SendableChooser<Command> autoChooser;
+
+    // Hopper object
+    // ID's will be changed
+    public final Hopper m_hopper = new Hopper(0, 1);
     
     // creates our limelights
     public final Turret m_turret = new Turret(15, 0, 0);
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0,drivetrain,m_turret);
     
 
-        public Command TrackingCommand = new frc.robot.commands.TurretTrackingCommand(m_turret,limelight,drivetrain);
+    public Command TrackingCommand = new frc.robot.commands.TurretPowerCommand(m_turret,limelight,drivetrain);
 
 
     public RobotContainer() {
@@ -113,8 +119,17 @@ public class RobotContainer {
             )
         );
 
+
         // Named command for shooting
-        NamedCommands.registerCommand("Shoot", new InstantCommand(()-> TrackingCommand.execute()));
+        NamedCommands.registerCommand("Shoot", TrackingCommand);
+        // Named command that shoots balls from hopper through shooter
+        NamedCommands.registerCommand("FeedAndShoot", 
+            new SequentialCommandGroup(
+                new InstantCommand(()-> m_hopper.setRollerMotor(0.5)),
+                new InstantCommand(()-> m_hopper.setPreFeederMotor(0.5)), 
+                TrackingCommand
+            )
+        );
 
 
 

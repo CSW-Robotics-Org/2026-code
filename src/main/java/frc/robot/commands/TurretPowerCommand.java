@@ -4,13 +4,13 @@ import frc.robot.subsystems.LimeLight;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
-public class TurretTrackingCommand extends Command {
+public class TurretPowerCommand extends Command {
 
     private final Turret turret;
     private final LimeLight limelight;
     private final CommandSwerveDrivetrain drivetrain;
 
-    public TurretTrackingCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain) {
+    public TurretPowerCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain) {
         this.turret = turret;
         this.limelight = limelight;
         this.drivetrain = drivetrain;
@@ -20,13 +20,13 @@ public class TurretTrackingCommand extends Command {
     @Override
     public void execute() {
         // Calculate speed and shooter power each tick
-        double turretPower = TurretTracking.TurretLineup(limelight, drivetrain, turret);
-        turret.setTurretMotor(turretPower);
+        double shooterPower = TurretTracking.ShooterPower(limelight, drivetrain,turret);
+        turret.setShooterMotor(shooterPower);
     }
 
     @Override
     public void end(boolean interrupted) {
-        turret.setTurretMotor(0);
+        turret.setShooterMotor(0);
     }
 
     @Override
