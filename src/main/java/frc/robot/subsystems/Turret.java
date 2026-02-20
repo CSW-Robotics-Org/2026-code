@@ -38,6 +38,8 @@ public class Turret extends SubsystemBase{
     private double currentRot = 0;
     // stores the encoder for the sparkmax
     private RelativeEncoder rot_encoder;
+    // stores the current speed
+    public double rotCurrentSpeed = 0;
 
     // creates the intake motor
     private SparkMax feed_motor;
@@ -85,19 +87,21 @@ public class Turret extends SubsystemBase{
         if (((turretRotation >= 85) || right_lim_switch.get() == true) && (speed > 0)){
             // freeze the rotational motor
             rot_motor.set(0);
+            rotCurrentSpeed = 0;
         }
          // if we are all the way to the left and we tell the turret to go left
         else if (((turretRotation <= -85) || left_lim_switch.get() == true) && (speed < 0)){
             // freeze the rotational motor
             rot_motor.set(0);
+            rotCurrentSpeed = 0;
         }
         // only if both of those are not true do we set the motor
         else{
             rot_motor.set(
                     Math.min(rMaxSpeed, speed)
             );
+            rotCurrentSpeed = Math.min(rMaxSpeed, speed);
         }
-
         }
 
     // Sets the shooter motor speed

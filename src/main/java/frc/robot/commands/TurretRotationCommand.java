@@ -14,7 +14,6 @@ public class TurretRotationCommand extends Command {
         this.turret = turret;
         this.limelight = limelight;
         this.drivetrain = drivetrain;
-        addRequirements(turret); // make sure only one command controls the turret
     }
 
     @Override

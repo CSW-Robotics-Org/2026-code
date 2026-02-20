@@ -27,7 +27,7 @@ public class TurretTracking extends Command{
     private static final double HUB_X = 8.27;   // lateral
     private static final double HUB_Z = 4.03;   // forward
 
-    /** Returns turret speed using Limelight or robot pose */
+    /** Returns turret speed */
     public static double TurretLineup(LimeLight limelight, CommandSwerveDrivetrain drivetrain,Turret turret) {
 
         Translation3d targetPos;
@@ -53,31 +53,16 @@ public class TurretTracking extends Command{
 
             Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
             targetPos = boxCenterPos.getTranslation();
-            targetAngle = Math.toDegrees(Math.atan2(targetPos.getX(), targetPos.getZ()));
 
-        } else {
-            double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
-            double turretYaw = Math.toRadians(turret.getAngle());
+            double turretSpeed = turretPID.calculate(targetAngle,turret.getAngle());
+            turretSpeed = MathUtil.clamp(turretSpeed, -0.35, 0.35);
 
-            double totalYaw = robotYaw + turretYaw;
+            return turretSpeed;
 
-            // rotate relative vector to hub
-            double xRel = HUB_X - drivetrain.getState().Pose.getX();
-            double zRel = HUB_Z - drivetrain.getState().Pose.getY();
-
-            double xRot = xRel * Math.cos(totalYaw) - zRel * Math.sin(totalYaw);
-            double zRot = xRel * Math.sin(totalYaw) + zRel * Math.cos(totalYaw);
-
-
-            targetPos = new Translation3d(xRel, 0, zRel); // ignore Y
-
-            targetAngle = Math.toDegrees(Math.atan2(xRot, zRot));
+        } 
+        else {
+            return turret.rotCurrentSpeed;
         }
-
-        double turretSpeed = turretPID.calculate(targetAngle,turret.getAngle());
-        turretSpeed = MathUtil.clamp(turretSpeed, -0.35, 0.35);
-
-        return turretSpeed;
     }
 
     /** Returns shooter power using Limelight or robot pose */
@@ -109,23 +94,12 @@ public class TurretTracking extends Command{
             targetDistance = Math.hypot(targetPos.getX(), targetPos.getZ());
 
         } else {
-            double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
-            double turretYaw = Math.toRadians(turret.getAngle());
-
-            double totalYaw = robotYaw + turretYaw;
-
             // rotate relative vector to hub
             double xRel = HUB_X - drivetrain.getState().Pose.getX();
             double zRel = HUB_Z - drivetrain.getState().Pose.getY();
 
-            double xRot = xRel * Math.cos(totalYaw) - zRel * Math.sin(totalYaw);
-            double zRot = xRel * Math.sin(totalYaw) + zRel * Math.cos(totalYaw);
-
-
-            targetPos = new Translation3d(xRel, 0, zRel); // ignore Y
-
             // stores the target distance
-            targetDistance = Math.hypot(xRot, zRot);
+            targetDistance = Math.hypot(xRel, zRel);
         }
 
         // Quadratic formula for shooter power

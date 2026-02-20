@@ -13,7 +13,9 @@ public class Intake extends SubsystemBase{
     public double iMaxSpeed = 1;
 
     // creates the motor that will rotate the intake downwards
-    private SparkMax rot_motor;
+    private SparkMax left_rot_motor;
+    // creates the motor that will rotate the intake downwards
+    private SparkMax right_rot_motor;
     // creates a max speed variable
     public double rotMaxSpeed = 1;
     // creates a variable to store the position of the intake arm
@@ -22,9 +24,10 @@ public class Intake extends SubsystemBase{
     private double currentRot = 0;
 
     // constructor creates the motors
-    public Intake(int i_id, int rot_id){
+    public Intake(int i_id, int left_rot_id,int right_rot_id){
         i_motor = new SparkMax(i_id, MotorType.kBrushless);
-        rot_motor = new SparkMax(rot_id, MotorType.kBrushless);
+        left_rot_motor = new SparkMax(left_rot_id, MotorType.kBrushless);
+        right_rot_motor = new SparkMax(right_rot_id, MotorType.kBrushless);
     }
 
     // a method to set the motor speed for the intake
@@ -36,8 +39,11 @@ public class Intake extends SubsystemBase{
 
     // a method to set the motor speed for the rotation motor
     public void setRotationMotor(double speed){
-        rot_motor.set(
+        left_rot_motor.set(
             Math.min(rotMaxSpeed, speed)
+        );
+        right_rot_motor.set(
+            Math.min(rotMaxSpeed, -speed)
         );
     }
 
