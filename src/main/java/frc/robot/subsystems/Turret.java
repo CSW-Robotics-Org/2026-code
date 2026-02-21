@@ -52,7 +52,7 @@ public class Turret extends SubsystemBase{
     // creates the feed forward for the shooter
     private SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(0.2, 0.0021);
 
-    private static final double TURRET_GEAR_RATIO = 100.0; 
+    private static final double TURRET_GEAR_RATIO = 8.0;
 
     // The constructor that creates the motors
     public Turret(int s1_id, int rot_id, int feed_id){
