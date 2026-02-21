@@ -53,6 +53,7 @@ public class TurretTracking extends Command{
 
             Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
             targetPos = boxCenterPos.getTranslation();
+            targetAngle = Math.toDegrees(Math.atan2(targetPos.getX(),targetPos.getZ()));
 
         } 
         else {
