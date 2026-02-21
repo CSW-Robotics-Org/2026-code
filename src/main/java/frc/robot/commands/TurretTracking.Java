@@ -97,7 +97,7 @@ public class TurretTracking extends Command{
             );
 
             Transform3d tagToBoxCenter = new Transform3d(
-                new Translation3d(-0.5969, 0, 0),
+                new Translation3d(0.5969, 0, 0),
                 new Rotation3d()
             );
 
@@ -116,7 +116,7 @@ public class TurretTracking extends Command{
         }
 
         // Quadratic formula for shooter power
-        double shooterPow = 0.453 + 0.0199 * targetDistance + 0.00347 * Math.pow(targetDistance, 2);
+        double shooterPow = 0.5 + 0.0199 * targetDistance + 0.00347 * Math.pow(targetDistance, 2);
 
         return shooterPow;
     }

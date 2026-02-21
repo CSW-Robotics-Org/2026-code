@@ -26,7 +26,7 @@ public class Turret extends SubsystemBase{
     public double targetRPM = 0;
 
     // Creates the turret rotation motor
-    private SparkMax rot_motor;
+    public SparkMax rot_motor;
     // Stores the max speed of the rot_motor
     public double rMaxSpeed = 1;
     // Variable to store the current rotation
@@ -40,8 +40,10 @@ public class Turret extends SubsystemBase{
     private SparkMax feed_motor;
     // intake max speed
     public double fMaxSpeed = 1;
-
-    private LimeLight limelight;
+    // stores the encoder for the sparkmax
+    private RelativeEncoder f_encoder;
+    // stores the target rpm
+    public double ftargetRPM = 0;
 
     // creates the limit switches
     private DigitalInput left_lim_switch = new DigitalInput(0);
@@ -51,6 +53,11 @@ public class Turret extends SubsystemBase{
     private PIDController shooterPID = new PIDController(0.0004, 0, 0);
     // creates the feed forward for the shooter
     private SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(0.2, 0.0021);
+
+    // creates a pid controller for the shooter
+    private PIDController feederPID = new PIDController(0.0004, 0, 0);
+    // creates the feed forward for the shooter
+    private SimpleMotorFeedforward feederFF = new SimpleMotorFeedforward(0.2, 0.0021);
 
     private static final double TURRET_GEAR_RATIO = 8.0;
 
@@ -62,6 +69,7 @@ public class Turret extends SubsystemBase{
         rot_encoder = rot_motor.getEncoder();
 
         feed_motor = new SparkMax(feed_id, MotorType.kBrushless);
+        f_encoder = feed_motor.getEncoder();
 
         // creates a new config for the motors
         SparkMaxConfig config = new SparkMaxConfig();
@@ -104,9 +112,8 @@ public class Turret extends SubsystemBase{
 
     // Sets the shooter motor speed
     public void setFeederMotor(double speed){
-        feed_motor.set(
-            Math.min(fMaxSpeed, speed)
-        );
+       speed = MathUtil.clamp(speed, -1, 1);
+         ftargetRPM = speed*5676;
     }
 
      // Method that runs ~ every 20 ms
@@ -127,12 +134,19 @@ public class Turret extends SubsystemBase{
             rot_encoder.setPosition(85.0 / 360.0 * TURRET_GEAR_RATIO);
         }
 
-        double currentRPM = s_encoder.getVelocity();
-        double pidOutput = shooterPID.calculate(currentRPM,targetRPM);
-        double ffOutput = shooterFF.calculate(targetRPM);
+        double scurrentRPM = s_encoder.getVelocity();
+        double spidOutput = shooterPID.calculate(scurrentRPM,targetRPM);
+        double sffOutput = shooterFF.calculate(targetRPM);
+        double svoltage = spidOutput + sffOutput;
+        svoltage = MathUtil.clamp(svoltage, -12, 12);
+        s_motor.setVoltage(svoltage);
+
+        double currentRPM = f_encoder.getVelocity();
+        double pidOutput = feederPID.calculate(currentRPM,ftargetRPM);
+        double ffOutput = feederFF.calculate(ftargetRPM);
         double voltage = pidOutput + ffOutput;
         voltage = MathUtil.clamp(voltage, -12, 12);
-        s_motor.setVoltage(voltage);
+        feed_motor.setVoltage(voltage);
 
     }
 
