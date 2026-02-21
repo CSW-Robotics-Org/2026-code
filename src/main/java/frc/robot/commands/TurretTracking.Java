@@ -54,16 +54,28 @@ public class TurretTracking extends Command{
             Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
             targetPos = boxCenterPos.getTranslation();
 
-            double turretSpeed = turretPID.calculate(targetAngle,turret.getAngle());
-            turretSpeed = MathUtil.clamp(turretSpeed, -0.35, 0.35);
-
-            return turretSpeed;
-
         } 
         else {
-            return turret.rotCurrentSpeed;
+            double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
+            double turretYaw = Math.toRadians(turret.getAngle());
+
+            double totalYaw = robotYaw + turretYaw;
+
+            // rotate relative vector to hub
+            double xRel = HUB_X - drivetrain.getState().Pose.getX();
+            double zRel = HUB_Z - drivetrain.getState().Pose.getY();
+
+            double xRot = xRel * Math.cos(totalYaw) - zRel * Math.sin(totalYaw);
+            double zRot = xRel * Math.sin(totalYaw) + zRel * Math.cos(totalYaw);
+
+            targetAngle = Math.toDegrees(Math.atan2(xRot, zRot));
         }
-    }
+
+        double turretSpeed = turretPID.calculate(targetAngle,turret.getAngle());
+        turretSpeed = MathUtil.clamp(turretSpeed, -0.35, 0.35);
+
+        return turretSpeed;
+}
 
     /** Returns shooter power using Limelight or robot pose */
     public static double ShooterPower(LimeLight limelight, CommandSwerveDrivetrain drivetrain,Turret turret) {

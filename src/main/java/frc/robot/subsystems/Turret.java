@@ -23,10 +23,7 @@ public class Turret extends SubsystemBase{
     // stores the encoder for the sparkmax
     private RelativeEncoder s_encoder;
     // stores the target rpm
-    private double targetRPM = 0;
-    
-    public Boolean shouldShoot = false;
-
+    public double targetRPM = 0;
 
     // Creates the turret rotation motor
     private SparkMax rot_motor;
@@ -34,8 +31,6 @@ public class Turret extends SubsystemBase{
     public double rMaxSpeed = 1;
     // Variable to store the current rotation
     private double turretRotation = 0;
-    // this is our ficticous current rotation
-    private double currentRot = 0;
     // stores the encoder for the sparkmax
     private RelativeEncoder rot_encoder;
     // stores the current speed
@@ -57,21 +52,24 @@ public class Turret extends SubsystemBase{
     // creates the feed forward for the shooter
     private SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(0.2, 0.0021);
 
+    private static final double TURRET_GEAR_RATIO = 100.0; 
+
     // The constructor that creates the motors
     public Turret(int s1_id, int rot_id, int feed_id){
         s_motor = new SparkMax(s1_id, MotorType.kBrushless);
         s_encoder = s_motor.getEncoder();
-        // rot_motor = new SparkMax(rot_id, MotorType.kBrushless);
-        // rot_encoder = rot_motor.getEncoder();
-        // feed_motor = new SparkMax(feed_id, MotorType.kBrushless);
+        rot_motor = new SparkMax(rot_id, MotorType.kBrushless);
+        rot_encoder = rot_motor.getEncoder();
 
-        // // creates a new config for the motors
-        // SparkMaxConfig config = new SparkMaxConfig();
-        // config.idleMode(IdleMode.kBrake);
+        feed_motor = new SparkMax(feed_id, MotorType.kBrushless);
 
-        // // applys the config to the motors
-        // rot_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        // feed_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        // creates a new config for the motors
+        SparkMaxConfig config = new SparkMaxConfig();
+        config.idleMode(IdleMode.kBrake);
+
+        // applys the config to the motors
+        rot_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        feed_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     }
 
@@ -113,15 +111,21 @@ public class Turret extends SubsystemBase{
 
      // Method that runs ~ every 20 ms
     public void periodic(){
-        // turretRotation = currentRot;
+        turretRotation = this.getAngle();
 
-        // // some logic to make sure the robot doesnt overturn the turret.
-        // if (((turretRotation <= -85) || left_lim_switch.get() == true) && ( rot_encoder.getVelocity() > 0)){
-        //     rot_motor.set(0);
-        // }
-        // if (((turretRotation >= 85) || right_lim_switch.get() == true) && ( rot_encoder.getVelocity() < 0)){
-        //     rot_motor.set(0);
-        // }
+        if ((turretRotation <= -85 || left_lim_switch.get()) && rotCurrentSpeed < 0) {
+            rot_motor.set(0);
+        }
+        if ((turretRotation >= 85 || right_lim_switch.get()) && rotCurrentSpeed > 0) {
+            rot_motor.set(0);
+        }
+
+        if (left_lim_switch.get() && turretRotation > -84) {
+        rot_encoder.setPosition(-85.0 / 360.0 * TURRET_GEAR_RATIO);
+        }
+        if (right_lim_switch.get() && turretRotation < 84) {
+            rot_encoder.setPosition(85.0 / 360.0 * TURRET_GEAR_RATIO);
+        }
 
         double currentRPM = s_encoder.getVelocity();
         double pidOutput = shooterPID.calculate(currentRPM,targetRPM);
@@ -133,7 +137,10 @@ public class Turret extends SubsystemBase{
     }
 
     public double getAngle() {
-        return 0;
+        double motorRotations = rot_encoder.getPosition();
+        double turretRotations = motorRotations / TURRET_GEAR_RATIO;
+        double turretDegrees = turretRotations * 360.0;
+        return turretDegrees;
     }
     
 }

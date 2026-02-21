@@ -75,7 +75,7 @@ public class RobotContainer {
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0,drivetrain,m_turret);
     
 
-    public Command TrackingCommand = new frc.robot.commands.TurretPowerCommand(m_turret,limelight,drivetrain);
+    public Command ShooterPowerCommand = new frc.robot.commands.TurretPowerCommand(m_turret,limelight,drivetrain);
 
 
     public RobotContainer() {
@@ -120,14 +120,14 @@ public class RobotContainer {
         );
 
         // Named command for shooting
-        NamedCommands.registerCommand("Shoot", TrackingCommand);
+        NamedCommands.registerCommand("Shoot", ShooterPowerCommand);
         
         // Named command that shoots balls from hopper through shooter
         NamedCommands.registerCommand("FeedAndShoot", 
             new SequentialCommandGroup(
                 new InstantCommand(()-> m_hopper.setRollerMotor(0.5)),
                 new InstantCommand(()-> m_hopper.setPreFeederMotor(0.5)), 
-                TrackingCommand
+                ShooterPowerCommand
             )
         );
 
@@ -154,7 +154,7 @@ public class RobotContainer {
 
          // ##### OPERATOR CONTROLS #####
             new JoystickButton(m_operator, 4)
-                .whileTrue(TrackingCommand);
+                .whileTrue(ShooterPowerCommand);
 
 
         drivetrain.registerTelemetry(logger::telemeterize);
