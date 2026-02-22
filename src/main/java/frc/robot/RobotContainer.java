@@ -13,6 +13,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -29,9 +30,11 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveTracking;
+import frc.robot.commands.TurretPowerCommand;
 import frc.robot.commands.TurretTracking;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -52,7 +55,6 @@ public class RobotContainer {
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
@@ -76,7 +78,7 @@ public class RobotContainer {
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0);
     
 
-    public Command ShooterPowerCommand = new frc.robot.commands.TurretPowerCommand(m_turret,limelight,drivetrain);
+    public TurretPowerCommand ShooterPowerCommand = new frc.robot.commands.TurretPowerCommand(m_turret,limelight,drivetrain);
 
 
     public RobotContainer() {
@@ -159,11 +161,28 @@ public class RobotContainer {
                 .onTrue(new InstantCommand(()->m_turret.setFeederMotor(0.35)))
                 .onFalse(new InstantCommand(()-> m_turret.setFeederMotor(0)));
 
-            new JoystickButton(m_operator,1).whileTrue(new RunCommand(
-                ()-> m_turret.setTurretMotor(m_operator.getLeftX()/5)));
+            // sets the turret default command to move the turret.
+            m_turret.setDefaultCommand(
+                new RunCommand(
+                    () -> m_turret.setTurretMotor(
+                        MathUtil.applyDeadband(m_operator.getLeftX(), 0.1) / 5.0
+                    ),
+                    m_turret
+                )
+            );
+
+            // DPad Up → increase offset
+            new POVButton(m_operator, 0).onTrue(
+                new InstantCommand(() -> ShooterPowerCommand.adjustOffset(0.05))
+            );
+            // DPad Down → decrease offset
+            new POVButton(m_operator, 180).onTrue(
+                new InstantCommand(() -> ShooterPowerCommand.adjustOffset(-0.05))
+            );
 
 
-
+        // puts the power offset on sd
+        SmartDashboard.putNumber("Shooter Power Offset", ShooterPowerCommand.getOffset());
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 

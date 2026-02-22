@@ -134,17 +134,17 @@ public class Turret extends SubsystemBase{
             rot_encoder.setPosition(85.0 / 360.0 * TURRET_GEAR_RATIO);
         }
 
-        double scurrentRPM = s_encoder.getVelocity();
-        double spidOutput = shooterPID.calculate(scurrentRPM,targetRPM);
-        double sffOutput = shooterFF.calculate(targetRPM);
-        double svoltage = spidOutput + sffOutput;
-        svoltage = MathUtil.clamp(svoltage, -12, 12);
-        s_motor.setVoltage(svoltage);
+        double shooterCurrentRPM = s_encoder.getVelocity();
+        double shooterPIDOutput = shooterPID.calculate(shooterCurrentRPM,targetRPM);
+        double shooterffOutput = shooterFF.calculate(targetRPM);
+        double shooterVoltage = shooterPIDOutput + shooterffOutput;
+        shooterVoltage = MathUtil.clamp(shooterVoltage, -12, 12);
+        s_motor.setVoltage(shooterVoltage);
 
-        double currentRPM = f_encoder.getVelocity();
-        double pidOutput = feederPID.calculate(currentRPM,ftargetRPM);
-        double ffOutput = feederFF.calculate(ftargetRPM);
-        double voltage = pidOutput + ffOutput;
+        double feederCurrentRPM = f_encoder.getVelocity();
+        double feederPIDOutput = feederPID.calculate(feederCurrentRPM,ftargetRPM);
+        double feederffOutput = feederFF.calculate(ftargetRPM);
+        double voltage = feederPIDOutput + feederffOutput;
         voltage = MathUtil.clamp(voltage, -12, 12);
         feed_motor.setVoltage(voltage);
 
