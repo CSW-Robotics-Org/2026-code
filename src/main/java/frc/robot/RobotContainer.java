@@ -167,15 +167,15 @@ public class RobotContainer {
 
             // DPad Up → increase offset
             new POVButton(m_operator, 0).onTrue(
-                new InstantCommand(() -> ShooterPowerCommand.adjustOffset(0.05))
+                new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(0.05))
             );
             // DPad Down → decrease offset
             new POVButton(m_operator, 180).onTrue(
-                new InstantCommand(() -> ShooterPowerCommand.adjustOffset(-0.05))
+                new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(-0.05))
             );
 
         // puts the power offset on sd
-        SmartDashboard.putNumber("Shooter Power Offset", ShooterPowerCommand.getOffset());
+        SmartDashboard.putNumber("Shooter Power Offset", ShooterPowerCommand.getPowerOffset());
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 

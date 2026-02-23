@@ -12,7 +12,12 @@ import frc.robot.subsystems.LimeLight;
 
 public class DriveTracking extends Command {
 
-    // track with the front limelight
+    /**
+     * A command to lineup close tracking like last year. Assumes limelight is on front of robot
+     * @param drivetrain (drivetrain to drive)
+     * @param limelight (limelight on the front of robot)
+     * @return SwerveRequest.RobotCentric()
+     */
     public static SwerveRequest lineUp(CommandSwerveDrivetrain drivetrain, LimeLight limelight) {
   
         return new SwerveRequest.RobotCentric() // Robot-centric mode
@@ -43,7 +48,12 @@ public class DriveTracking extends Command {
             );
     }
 
-    // track with the front limelight
+    /**
+     * A command to lineup close tracking like last year. Assumes limelight is on left of robot
+     * @param drivetrain (drivetrain to drive)
+     * @param limelight (limelight on the front of robot)
+     * @return SwerveRequest.RobotCentric()
+     */
     public static SwerveRequest lineUpLeft(CommandSwerveDrivetrain drivetrain, LimeLight limelight) {
   
         return new SwerveRequest.RobotCentric() // Robot-centric mode

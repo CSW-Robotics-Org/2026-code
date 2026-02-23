@@ -12,6 +12,12 @@ public class TurretPowerCommand extends Command {
     private final CommandSwerveDrivetrain drivetrain;
     public double shooterPowerOffset = 0;
 
+    /**
+     * Constructor of the command. Sets the shooter power based off of pos data.
+     * @param turret (turret)
+     * @param limelight (limelight on the turret)
+     * @param drivetrain (drivetrain for pos estimation)
+     */
     public TurretPowerCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain) {
         this.turret = turret;
         this.limelight = limelight;
@@ -30,18 +36,25 @@ public class TurretPowerCommand extends Command {
         turret.setShooterMotor(0);
     }
 
-    // adjusts the shooter power offset
-    public void adjustOffset(double amount) {
-        shooterPowerOffset += amount;
-        shooterPowerOffset = MathUtil.clamp(shooterPowerOffset, 0.0, 1.0);
-    }
-    // gets the offset
-    public double getOffset() {
-        return shooterPowerOffset;
-    }
-
     @Override
     public boolean isFinished() {
         return false; // never ends on its own
+    }
+
+     /**
+     * A command to adjust the angle offset of the turret.
+     * @param amount (double 0,1 as percentage %) of power to offset by.
+     */
+    public void adjustPowerOffset(double amount) {
+        shooterPowerOffset += amount;
+        shooterPowerOffset = MathUtil.clamp(shooterPowerOffset, 0.0, 1.0);
+    }
+    
+    /**
+     * A command that returns the shooter power offset
+     * @return shooterPowerOffset (double 0,1)
+     */
+    public double getPowerOffset() {
+        return shooterPowerOffset;
     }
 }
