@@ -19,13 +19,13 @@ public class TurretRotationCommand extends Command {
     @Override
     public void execute() {
         // Calculate speed and shooter power each tick
-        double turretPower = TurretTracking.TurretLineup(limelight, drivetrain, turret);
-        turret.setTurretMotor(turretPower);
+        double turretAngle = TurretTracking.TurretLineup(limelight, drivetrain, turret);
+        turret.setTargetAngle(turretAngle);
     }
 
     @Override
     public void end(boolean interrupted) {
-        turret.setTurretMotor(0);
+        turret.setTargetAngle(0);
     }
 
     @Override

@@ -75,7 +75,7 @@ public class RobotContainer {
     
     // creates our limelights
     public final Turret m_turret = new Turret(8, 10, 15);
-    public final LimeLight limelight = new LimeLight("limelight-front",0,0,0);
+    public final LimeLight limelight = new LimeLight("limelight-front",0,0,0,drivetrain,m_turret);
     
 
     public TurretPowerCommand ShooterPowerCommand = new frc.robot.commands.TurretPowerCommand(m_turret,limelight,drivetrain);
@@ -161,15 +161,9 @@ public class RobotContainer {
                 .onTrue(new InstantCommand(()->m_turret.setFeederMotor(0.35)))
                 .onFalse(new InstantCommand(()-> m_turret.setFeederMotor(0)));
 
-            // sets the turret default command to move the turret.
-            m_turret.setDefaultCommand(
-                new RunCommand(
-                    () -> m_turret.setTurretMotor(
-                        MathUtil.applyDeadband(m_operator.getLeftX(), 0.1) / 5.0
-                    ),
-                    m_turret
-                )
-            );
+            // buttons to move the turret angle
+            new JoystickButton(m_operator,6).onTrue(new InstantCommand(()-> m_turret.setTargetAngle(m_turret.targetAngle + 5)));
+            new JoystickButton(m_operator,5).onTrue(new InstantCommand(()-> m_turret.setTargetAngle(m_turret.targetAngle - 5)));
 
             // DPad Up → increase offset
             new POVButton(m_operator, 0).onTrue(
@@ -179,7 +173,6 @@ public class RobotContainer {
             new POVButton(m_operator, 180).onTrue(
                 new InstantCommand(() -> ShooterPowerCommand.adjustOffset(-0.05))
             );
-
 
         // puts the power offset on sd
         SmartDashboard.putNumber("Shooter Power Offset", ShooterPowerCommand.getOffset());

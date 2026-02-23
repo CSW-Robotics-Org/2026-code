@@ -15,19 +15,18 @@ import frc.robot.subsystems.LimeLight;
 import frc.robot.subsystems.Turret;
 
 public class TurretTracking extends Command{
-
-    private static final PIDController turretPID = new PIDController(0.02, 0, 0.0);
-
-    static {
-        turretPID.enableContinuousInput(-180.0, 180.0);
-        turretPID.setTolerance(0.75);
-    }
-
+    
     // Hub position (meters)
     private static final double HUB_X = 8.27;   // lateral
     private static final double HUB_Z = 4.03;   // forward
 
-    /** Returns turret speed */
+    /**
+     * returns the angle of the turret to point at the center of the hub
+     * @param limelight
+     * @param drivetrain
+     * @param turret
+     * @return target angle (degrees)
+     */
     public static double TurretLineup(LimeLight limelight, CommandSwerveDrivetrain drivetrain,Turret turret) {
 
         Translation3d targetPos;
@@ -72,13 +71,16 @@ public class TurretTracking extends Command{
             targetAngle = Math.toDegrees(Math.atan2(xRot, zRot));
         }
 
-        double turretSpeed = turretPID.calculate(targetAngle,turret.getAngle());
-        turretSpeed = MathUtil.clamp(turretSpeed, -0.35, 0.35);
-
-        return turretSpeed;
+        return targetAngle;
 }
 
-    /** Returns shooter power using Limelight or robot pose */
+    /**
+     * Returns the shooter power for the distance to the hub
+     * @param limelight
+     * @param drivetrain
+     * @param turret
+     * @return shooter power (double)
+     */
     public static double ShooterPower(LimeLight limelight, CommandSwerveDrivetrain drivetrain,Turret turret) {
 
         Translation3d targetPos;
@@ -97,7 +99,7 @@ public class TurretTracking extends Command{
             );
 
             Transform3d tagToBoxCenter = new Transform3d(
-                new Translation3d(0.5969, 0, 0),
+                new Translation3d(-0.5969, 0, 0),
                 new Rotation3d()
             );
 
@@ -117,6 +119,7 @@ public class TurretTracking extends Command{
 
         // Quadratic formula for shooter power
         double shooterPow = 0.5 + 0.0199 * targetDistance + 0.00347 * Math.pow(targetDistance, 2);
+        shooterPow = MathUtil.clamp(shooterPow,-1,1);
 
         return shooterPow;
     }
