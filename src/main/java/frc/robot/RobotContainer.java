@@ -34,11 +34,14 @@ import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveTracking;
+import frc.robot.commands.FullShootCommand;
 import frc.robot.commands.TurretPowerCommand;
+import frc.robot.commands.TurretRotationCommand;
 import frc.robot.commands.TurretTracking;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Hopper;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LimeLight;
 import frc.robot.subsystems.Turret;
 
@@ -69,23 +72,26 @@ public class RobotContainer {
     // auto picker for command  /* Path follower */
     private SendableChooser<Command> autoChooser;
 
-    // Hopper object
     // ID's will be changed
-    // public final Hopper m_hopper = new Hopper(0, 1);
+    public final Hopper m_hopper = new Hopper(0);
+    public final Intake m_intake = new Intake(0, 0, 0);
     
     // creates our limelights
     public final Turret m_turret = new Turret(8, 10, 15);
     public final LimeLight limelight = new LimeLight("limelight-front",0,0,0,drivetrain,m_turret);
     
-
-    public TurretPowerCommand ShooterPowerCommand = new frc.robot.commands.TurretPowerCommand(m_turret,limelight,drivetrain);
-
+    public TurretPowerCommand ShooterPowerCommand = new TurretPowerCommand(m_turret,limelight,drivetrain);
+    public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight,drivetrain);
+    public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,drivetrain,m_hopper);
 
     public RobotContainer() {
         configureBindings();
 
+        // creates the autobuilder
         autoChooser = AutoBuilder.buildAutoChooser("Default");
+        // puts the autobuilder on smart dashboard
         SmartDashboard.putData("Auto Mode", autoChooser);
+        // warms up pathplanner so we dont have issues starting
         FollowPathCommand.warmupCommand().schedule();
     }
 
@@ -109,27 +115,31 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
-        // Freeze wheels command
-        NamedCommands.registerCommand("FreezeWheels", 
-            new InstantCommand(()-> 
-                drivetrain.applyRequest(()-> 
-                    drive.withVelocityX(0)
-                    .withVelocityY(0)
-                    .withRotationalRate(0)) 
-            )
-        );
 
-        // Named command for shooting
-        NamedCommands.registerCommand("Shoot", ShooterPowerCommand);
-        
-        // // Named command that shoots balls from hopper through shooter
-        // NamedCommands.registerCommand("FeedAndShoot", 
-        //     new SequentialCommandGroup(
-        //         new InstantCommand(()-> m_hopper.setRollerMotor(0.5)),
-        //         new InstantCommand(()-> m_hopper.setPreFeederMotor(0.5)), 
-        //         ShooterPowerCommand
-        //     )
-        // );
+
+
+        // #### AUTO COMMANDS ####
+
+            // Freeze wheels command
+            NamedCommands.registerCommand("FreezeWheels", 
+                new InstantCommand(()-> 
+                    drivetrain.applyRequest(()-> 
+                        drive.withVelocityX(0)
+                        .withVelocityY(0)
+                        .withRotationalRate(0)) 
+                )
+            );
+
+            // Named command for shooting
+            NamedCommands.registerCommand("Shoot", ShooterPowerCommand);
+            
+            // Named command that shoots balls from hopper through shooter
+            NamedCommands.registerCommand("FeedAndShoot", 
+                new SequentialCommandGroup(
+                    // new InstantCommand(()-> m_hopper.setRollerMotor(0.5)),
+                    // Commands.race(ShooterPowerCommand,)
+                )
+            );
 
        
 
@@ -137,45 +147,88 @@ public class RobotContainer {
 
         // ##### DRIVER CONTROLS #####
 
-            // // Theoretically resets the field reletive possitioning
-            // new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+            // Theoretically resets the field reletive possitioning
+            new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
             
             // Theoretically applies the break works great in the sim
             new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
 
             // robot rel
-            // new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
-            //     new SwerveRequest.RobotCentric()
-            //         .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-            //         .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-            //         .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
+            new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
+                new SwerveRequest.RobotCentric()
+                    .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
             
-            // ));
+            ));
 
-         // ##### OPERATOR CONTROLS #####
-            new JoystickButton(m_operator, 4)
-                .onTrue(new InstantCommand(()->m_turret.setShooterMotor(0.5)))
-                .onFalse(new InstantCommand(()->m_turret.setShooterMotor(0)));
-            new JoystickButton(m_operator,2).whileTrue(ShooterPowerCommand);
-             new JoystickButton(m_operator, 3)
-                .onTrue(new InstantCommand(()->m_turret.setFeederMotor(0.35)))
-                .onFalse(new InstantCommand(()-> m_turret.setFeederMotor(0)));
 
-            // buttons to move the turret angle
-            new JoystickButton(m_operator,6).onTrue(new InstantCommand(()-> m_turret.setTargetAngle(m_turret.targetAngle + 5)));
-            new JoystickButton(m_operator,5).onTrue(new InstantCommand(()-> m_turret.setTargetAngle(m_turret.targetAngle - 5)));
 
-            // DPad Up → increase offset
+        // ##### OPERATOR CONTROLS #####
+
+            // (Y) Button -> runs the shooter power command
+            new JoystickButton(m_operator,4).whileTrue(ShooterPowerCommand);
+
+            // (B) Button -> runs the turret rotation command
+            new JoystickButton(m_operator,3).whileTrue(TurretAngleCommand);
+            
+            // (A) Button -> runs the feeder motor and the hopper motor
+            new JoystickButton(m_operator, 2)
+                .onTrue( new SequentialCommandGroup(
+                    new InstantCommand(()->m_turret.setFeederMotor(0.35)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0.35))))
+                .onFalse(new SequentialCommandGroup(
+                    new InstantCommand(()->m_turret.setFeederMotor(0)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0))));
+
+            // (X) Button -> runs the full shoot command
+            new JoystickButton(m_operator,1).whileTrue(FullShoot);
+            
+            // (Start) Button -> deploys intake
+            new JoystickButton(m_operator,10).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(0)));
+
+            // (RT) Right Trigger -> While holding it changes the target rotation angle based off of the left stick x
+            new JoystickButton(m_operator, 8)
+                .whileTrue(
+                    new RunCommand(() ->
+                        m_turret.setTargetAngle(85 * m_operator.getLeftX())
+                    ))
+                .onFalse(new InstantCommand(()->m_turret.setTargetAngle(0)));
+
+            // DPad Up -> increase power offset
             new POVButton(m_operator, 0).onTrue(
-                new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(0.05))
+                new SequentialCommandGroup(
+                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(0.05)),
+                    new InstantCommand(() -> FullShoot.adjustPowerOffset(0.05))
+                )
             );
-            // DPad Down → decrease offset
+            // DPad Down -> decrease power offset
             new POVButton(m_operator, 180).onTrue(
-                new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(-0.05))
+                new SequentialCommandGroup(
+                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(-0.05)),
+                    new InstantCommand(() -> FullShoot.adjustPowerOffset(-0.05))
+                )
+            );
+            // DPad right -> increase angle offset
+            new POVButton(m_operator, 90).onTrue(
+                new SequentialCommandGroup(
+                    new InstantCommand(() -> TurretAngleCommand.adjustAngleOffset(2.5)),
+                    new InstantCommand(() -> FullShoot.adjustAngleOffset(2.5))
+                )
+            );
+            // DPad left -> decrease angle offset
+            new POVButton(m_operator, 270).onTrue(
+                new SequentialCommandGroup(
+                    new InstantCommand(() -> TurretAngleCommand.adjustAngleOffset(-2.5)),
+                    new InstantCommand(() -> FullShoot.adjustAngleOffset(-2.5))
+                )
             );
 
-        // puts the power offset on sd
+
+
+        // puts the power offset and angle offset on sd
         SmartDashboard.putNumber("Shooter Power Offset", ShooterPowerCommand.getPowerOffset());
+        SmartDashboard.putNumber("Shooter Angle Offset", TurretAngleCommand.getAngleOffset());
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 

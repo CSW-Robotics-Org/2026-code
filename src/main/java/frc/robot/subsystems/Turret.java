@@ -121,6 +121,22 @@ public class Turret extends SubsystemBase{
         return turretDegrees;
     }
 
+    /**
+     * A method to see if the shooter is up to speed
+     * @return Returns true if the shooter is at targetSpeed
+     */
+    public boolean atSpeed(){
+        double currentRPM = s_encoder.getVelocity();
+
+        // Don’t say we’re at speed if target is basically zero
+        if (Math.abs(targetRPM) < 100) {
+            return false;
+        }
+
+        double tolerance = 100; // RPM tolerance (tune this)
+        return Math.abs(currentRPM - targetRPM) < tolerance;
+    }
+
      // Method that runs ~ every 20 ms
     public void periodic(){
         // updates the turret rotation
