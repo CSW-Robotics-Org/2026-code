@@ -83,6 +83,10 @@ public class Turret extends SubsystemBase{
         feed_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
+    public void setTurret(double speed) {
+        rot_motor.set(speed);
+    }
+
     /**
      * Sets the target angle of the turret 
      * 0 is foward plane is (-85,0,85)

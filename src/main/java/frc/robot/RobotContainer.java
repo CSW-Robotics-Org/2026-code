@@ -171,6 +171,11 @@ public class RobotContainer {
 
             // (B) Button -> runs the turret rotation command
             new JoystickButton(m_operator,3).whileTrue(TurretAngleCommand);
+
+            // right bumber -> set turret motor to 25%
+            new JoystickButton(m_operator, 6)
+                .whileTrue( new InstantCommand(()-> m_turret.setTurret(0.25)))
+                .onFalse( new InstantCommand(()-> m_turret.setTurret(0)));
             
             // (A) Button -> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 2)
@@ -223,6 +228,7 @@ public class RobotContainer {
                     new InstantCommand(() -> FullShoot.adjustAngleOffset(-2.5))
                 )
             );
+
 
 
 
