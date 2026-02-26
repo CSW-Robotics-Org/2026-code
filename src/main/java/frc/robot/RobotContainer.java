@@ -183,6 +183,11 @@ public class RobotContainer {
 
             // (X) Button -> runs the full shoot command
             new JoystickButton(m_operator,1).whileTrue(FullShoot);
+
+            // right bumper -> set turret motor to 25%
+            new JoystickButton(m_operator, 6)
+                .whileTrue( new InstantCommand(()-> m_turret.setTurret(0.25)))
+                .onFalse( new InstantCommand(()-> m_turret.setTurret(0)));
             
             // (Start) Button -> deploys intake
             new JoystickButton(m_operator,10).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(0)));

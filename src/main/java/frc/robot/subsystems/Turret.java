@@ -85,6 +85,14 @@ public class Turret extends SubsystemBase{
     }
 
     /**
+     * Sets the turret motor, manual
+     * @param speed
+     */
+    public void setTurret(double speed) {
+        rot_motor.set(speed);
+    }
+    
+    /**
      * Sets the speed of the rotation motor
      * @param speed
      */
