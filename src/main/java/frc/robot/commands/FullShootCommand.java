@@ -2,6 +2,12 @@ package frc.robot.commands;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.LimeLight;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
@@ -15,7 +21,12 @@ public class FullShootCommand extends Command {
     private final CommandSwerveDrivetrain drivetrain;
     private final Hopper hopper;
     public double shooterPowerOffset = 0;
-    public double turretAngleOffset = 0;
+
+    private final TurretRotationCommand rotationCommand;
+    private final TurretPowerCommand powerCommand;
+    
+
+
 
     /**
      * Constructor of the command. Executes everything needed to shoot.
@@ -29,28 +40,27 @@ public class FullShootCommand extends Command {
         this.limelight = limelight;
         this.drivetrain = drivetrain;
         this.hopper = m_hopper;
+
+        rotationCommand = new TurretRotationCommand(turret, limelight, drivetrain);
+        powerCommand = new TurretPowerCommand(turret, limelight, drivetrain);
     }
 
     @Override
     public void execute() {
-        // Calculate speed and shooter power each tick
-        double shooterPower = TurretTracking.ShooterPower(limelight, drivetrain,turret);
-        turret.setShooterMotor(shooterPower + shooterPowerOffset);
-        // Calculate speed and shooter power each tick
-        double turretAngle = TurretTracking.TurretLineup(limelight, drivetrain, turret);
-        turret.setTargetAngle(turretAngle+turretAngleOffset);
-        
-        if (turret.atSpeed()){
-            turret.setFeederMotor(0.6);
-            hopper.setHopperMotor(0.6);
+        rotationCommand.execute();
+        powerCommand.execute();
+        if (rotationCommand.rotationReady() && powerCommand.readyToShoot()){
+            turret.setFeederMotor(0.5);
+            hopper.setHopperMotor(0.5);
         }
+
     }
 
     @Override
     public void end(boolean interrupted) {
-        turret.setShooterMotor(0);
-        turret.setTargetAngle(0);
-        turret.setFeederMotor(0);
+        rotationCommand.end(interrupted);
+        powerCommand.end(interrupted);
+        hopper.setHopperMotor(0);
     }
 
     @Override
@@ -63,8 +73,7 @@ public class FullShootCommand extends Command {
      * @param amount (double 0,1 as percentage %) of power to offset by.
      */
     public void adjustPowerOffset(double amount) {
-        shooterPowerOffset += amount;
-        shooterPowerOffset = MathUtil.clamp(shooterPowerOffset, 0.0, 1.0);
+        powerCommand.adjustPowerOffset(amount);
     }
     
     /**
@@ -72,23 +81,7 @@ public class FullShootCommand extends Command {
      * @return shooterPowerOffset (double 0,1)
      */
     public double getPowerOffset() {
-        return shooterPowerOffset;
+        return powerCommand.getPowerOffset();
     }
 
-    /**
-     * A command to adjust the power offset of the shooter.
-     * @param amount (degrees -85,85) of angle to offset by.
-     */
-    public void adjustAngleOffset(double amount) {
-        turretAngleOffset += amount;
-        turretAngleOffset = MathUtil.clamp(turretAngleOffset, 0.0, 1.0);
-    }
-    
-    /**
-     * A command that returns the shooter power offset
-     * @return turretAngleOffset (degrees -85,85)
-     */
-    public double getAngleOffset() {
-        return turretAngleOffset;
-    }
 }

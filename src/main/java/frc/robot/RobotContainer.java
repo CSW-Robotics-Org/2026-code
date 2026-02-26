@@ -191,9 +191,9 @@ public class RobotContainer {
             new JoystickButton(m_operator, 8)
                 .whileTrue(
                     new RunCommand(() ->
-                        m_turret.setTargetAngle(85 * m_operator.getLeftX())
+                        m_turret.setRotationMotor(m_operator.getLeftX()/5)
                     ))
-                .onFalse(new InstantCommand(()->m_turret.setTargetAngle(0)));
+                .onFalse(new InstantCommand(()->m_turret.setRotationMotor(0)));
 
             // DPad Up -> increase power offset
             new POVButton(m_operator, 0).onTrue(
@@ -209,26 +209,11 @@ public class RobotContainer {
                     new InstantCommand(() -> FullShoot.adjustPowerOffset(-0.05))
                 )
             );
-            // DPad right -> increase angle offset
-            new POVButton(m_operator, 90).onTrue(
-                new SequentialCommandGroup(
-                    new InstantCommand(() -> TurretAngleCommand.adjustAngleOffset(2.5)),
-                    new InstantCommand(() -> FullShoot.adjustAngleOffset(2.5))
-                )
-            );
-            // DPad left -> decrease angle offset
-            new POVButton(m_operator, 270).onTrue(
-                new SequentialCommandGroup(
-                    new InstantCommand(() -> TurretAngleCommand.adjustAngleOffset(-2.5)),
-                    new InstantCommand(() -> FullShoot.adjustAngleOffset(-2.5))
-                )
-            );
 
 
 
         // puts the power offset and angle offset on sd
         SmartDashboard.putNumber("Shooter Power Offset", ShooterPowerCommand.getPowerOffset());
-        SmartDashboard.putNumber("Shooter Angle Offset", TurretAngleCommand.getAngleOffset());
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 

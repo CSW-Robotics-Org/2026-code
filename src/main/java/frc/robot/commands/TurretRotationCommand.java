@@ -2,6 +2,11 @@ package frc.robot.commands;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.LimeLight;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
@@ -10,7 +15,23 @@ public class TurretRotationCommand extends Command {
     private final Turret turret;
     private final LimeLight limelight;
     private final CommandSwerveDrivetrain drivetrain;
-    public double turretAngleOffset = 0;
+
+    // Hub position (meters)
+    private final double HUB_X = 8.27;   // lateral
+    private final double HUB_Z = 4.03;   // forward
+
+    // creates a pid for the turret
+    private static final PIDController turretPID = new PIDController(0.02, 0, 0);
+
+    public Translation3d targetPos;
+    public Pose3d tagPos;
+    Transform3d tagToBoxCenter = new Transform3d(
+        new Translation3d(-0.5969, 0, 0),
+        new Rotation3d()
+    );
+    public Pose3d boxCenterPos;
+    public double angleError;
+
 
     /**
      * Constructor of the command. Sets the turret target angle based on pos data.
@@ -26,35 +47,62 @@ public class TurretRotationCommand extends Command {
 
     @Override
     public void execute() {
+
+        // if we cant see a tag dont move
+        if (limelight.tv == 0){
+            turret.setRotationMotor(0);
+        }
+
+        // Use Limelight for pos 3s
+        tagPos = new Pose3d(
+            limelight.targetPoseRobotSpace[0],
+            limelight.targetPoseRobotSpace[1],
+            limelight.targetPoseRobotSpace[2],
+            new Rotation3d(
+                Math.toRadians(limelight.targetPoseRobotSpace[3]),
+                Math.toRadians(limelight.targetPoseRobotSpace[4]),
+                Math.toRadians(limelight.targetPoseRobotSpace[5])
+            )
+        );
+
+        // set the box center pos
+        boxCenterPos = tagPos.transformBy(tagToBoxCenter);
+        // find the target pose
+        targetPos = boxCenterPos.getTranslation();
+        
+        // angle error to minimize
+        angleError = Math.toDegrees(
+        Math.atan2(targetPos.getX(), targetPos.getZ())
+        );
+
+        // We want angleError -> 0
+        double output = turretPID.calculate(angleError, 0);
+        // clamp output speed
+        output = MathUtil.clamp(output, -0.35, 0.35);
         // Calculate speed and shooter power each tick
-        double turretAngle = TurretTracking.TurretLineup(limelight, drivetrain, turret);
-        turret.setTargetAngle(turretAngle+turretAngleOffset);
+        turret.setRotationMotor(output);
+    }
+
+    /**
+     * Method to see if the turret is pointed the right way
+     * @return true if turret is lined up
+     */
+    public boolean rotationReady(){
+        return Math.abs(
+            Math.toDegrees(
+                Math.atan2(targetPos.getX(), targetPos.getZ())
+            )
+        ) 
+        < 2.0;
     }
 
     @Override
     public void end(boolean interrupted) {
-        turret.setTargetAngle(0);
+        turret.setRotationMotor(0);
     }
 
     @Override
     public boolean isFinished() {
         return false; // never ends on its own
-    }
-
-     /**
-     * A command to adjust the power offset of the shooter.
-     * @param amount (degrees -85,85) of angle to offset by.
-     */
-    public void adjustAngleOffset(double amount) {
-        turretAngleOffset += amount;
-        turretAngleOffset = MathUtil.clamp(turretAngleOffset, 0.0, 1.0);
-    }
-    
-    /**
-     * A command that returns the shooter power offset
-     * @return turretAngleOffset (degrees -85,85)
-     */
-    public double getAngleOffset() {
-        return turretAngleOffset;
     }
 }

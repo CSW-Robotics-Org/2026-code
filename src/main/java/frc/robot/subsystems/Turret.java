@@ -25,12 +25,10 @@ public class Turret extends SubsystemBase{
 
     // Creates the turret rotation motor
     public SparkMax rot_motor;
-    // Variable to store the current rotation
-    private double turretRotation = 0;
     // stores the encoder for the sparkmax
     private RelativeEncoder rot_encoder;
     // creates a target angle
-    public double targetAngle = 0;
+    public double rotTargetRPM = 0;
 
     // creates the intake motor
     private SparkMax feed_motor;
@@ -53,8 +51,11 @@ public class Turret extends SubsystemBase{
     // creates the feed forward for the feeder
     private SimpleMotorFeedforward feederFF = new SimpleMotorFeedforward(0.2, 0.0021);
 
-    // creates a turret pid
-    private PIDController turretPID = new PIDController(0.02, 0, 0);
+    // creates a pid controller for the feeder
+    private PIDController turretPID = new PIDController(0.0004, 0, 0);
+    // creates the feed forward for the feeder
+    private SimpleMotorFeedforward turretFF = new SimpleMotorFeedforward(0.2, 0.0021);
+
 
     // the turret to motor gear ration
     private static final double TURRET_GEAR_RATIO = 8.0;
@@ -84,12 +85,12 @@ public class Turret extends SubsystemBase{
     }
 
     /**
-     * Sets the target angle of the turret 
-     * 0 is foward plane is (-85,0,85)
-     * @param angle
+     * Sets the speed of the rotation motor
+     * @param speed
      */
-    public void setTargetAngle(double angle) {
-    targetAngle = MathUtil.clamp(angle, -85, 85);
+    public void setRotationMotor(double speed) {
+        speed = MathUtil.clamp(speed, -1, 1);
+        rotTargetRPM = speed*5676;
     }
 
     /**
@@ -111,17 +112,6 @@ public class Turret extends SubsystemBase{
     }
 
     /**
-     * A method that gets the angle of the turret in the plane (-85,0,85)
-     * @return turretAngle (degrees)
-     */
-    public double getAngle() {
-        double motorRotations = rot_encoder.getPosition();
-        double turretRotations = motorRotations / TURRET_GEAR_RATIO;
-        double turretDegrees = turretRotations * 360.0;
-        return turretDegrees;
-    }
-
-    /**
      * A method to see if the shooter is up to speed
      * @return Returns true if the shooter is at targetSpeed
      */
@@ -139,15 +129,13 @@ public class Turret extends SubsystemBase{
 
      // Method that runs ~ every 20 ms
     public void periodic(){
-        // updates the turret rotation
-        turretRotation = this.getAngle();
 
         // turret logic so we dont break the turret
-        if ((turretRotation <= -85 || left_lim_switch.get()) && rot_encoder.getVelocity() < 0) {
+        if (left_lim_switch.get() && rot_encoder.getVelocity() < 0) {
             rot_motor.set(0);
             rot_encoder.setPosition(-85.0 / 360.0 * TURRET_GEAR_RATIO);
         }
-        if ((turretRotation >= 85 || right_lim_switch.get()) && rot_encoder.getVelocity()  > 0) {
+        if (right_lim_switch.get() && rot_encoder.getVelocity()  > 0) {
             rot_motor.set(0);
             rot_encoder.setPosition(85.0 / 360.0 * TURRET_GEAR_RATIO);
         }
@@ -170,9 +158,12 @@ public class Turret extends SubsystemBase{
         feed_motor.setVoltage(voltage);
 
         // turret loop to hold speed
-        double output = turretPID.calculate(getAngle(), targetAngle);
-        output = MathUtil.clamp(output, -0.35, 0.35);
-        rot_motor.set(output);
+        double rotCurrentRPM = f_encoder.getVelocity();
+        double rotPIDOutput = turretPID.calculate(rotCurrentRPM,ftargetRPM);
+        double rotffOutput = turretFF.calculate(ftargetRPM);
+        double rotVoltage = rotPIDOutput + rotffOutput;
+        rotVoltage = MathUtil.clamp(rotVoltage, -12, 12);
+        feed_motor.setVoltage(rotVoltage);
 
     }
     

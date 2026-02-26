@@ -62,42 +62,6 @@ public class LimeLight extends SubsystemBase {
         NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("pipeline").setNumber(1);
     }
 
-    /**
-     * Updates the drivetrain Pose2d from a turret-mounted Limelight
-     * that gives a 6-element field-relative robot pose:
-     * [X, Y, Z, roll, pitch, yaw] in meters/radians.
-     */
-    public void updateRobotPoseFromLimelight(LimeLight limelight, 
-                                            CommandSwerveDrivetrain drivetrain,
-                                            double turretAngleRad) {
-        // drivetrainPoseEstimator is a SwerveDrivePoseEstimator in your drivetrain subsystem
-        // turretAngleRad is your current turret angle relative to robot front
-        // limelight.botPos is [X, Y, Z, roll, pitch, yaw] in field coordinates
-
-        if (limelight.tv == 1) {
-            double limelightX = limelight.botPos[0];
-            double limelightY = limelight.botPos[2]; // forward is Z in Limelight, X is lateral
-
-            // Offset the camera based on turret rotation
-            double camOffsetX = 0; // forward
-            double camOffsetY = 0;   // lateral
-
-            double cos = Math.cos(turretAngleRad);
-            double sin = Math.sin(turretAngleRad);
-
-            double offsetX = camOffsetX * cos - camOffsetY * sin;
-            double offsetY = camOffsetX * sin + camOffsetY * cos;
-
-            Pose2d visionPose = new Pose2d(
-                limelightX - offsetX,
-                limelightY - offsetY,
-                drivetrain.getState().Pose.getRotation() // or use limelightYaw if you trust it
-            );
-
-            drivetrain.addVisionMeasurement(visionPose, Timer.getFPGATimestamp());
-        }
-    }
-
 
     @Override
     public void periodic() {
@@ -109,9 +73,6 @@ public class LimeLight extends SubsystemBase {
         targetPoseRobotSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("targetpose_robotspace").getDoubleArray(new double[6]);
 
         tv = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("tv").getDouble(0);
-        
-        // updates the robot possition from the limelight
-        this.updateRobotPoseFromLimelight(this, drivetrain, m_turret.getAngle());
 
         System.out.println("X: " + targetPoseRobotSpace[0] + ", Y: " + targetPoseRobotSpace[1] + ", TV: " + tv);
         

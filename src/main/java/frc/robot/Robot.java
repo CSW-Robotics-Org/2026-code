@@ -32,7 +32,6 @@ public class Robot extends TimedRobot {
 
         // puts the shooter offset on sd
         SmartDashboard.putNumber("Shooter Power Offset", m_robotContainer.ShooterPowerCommand.getPowerOffset());
-        SmartDashboard.putNumber("Shooter Angle Offset", m_robotContainer.TurretAngleCommand.getAngleOffset());
     }
 
     @Override

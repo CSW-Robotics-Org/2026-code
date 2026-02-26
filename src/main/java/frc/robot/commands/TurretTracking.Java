@@ -20,58 +20,56 @@ public class TurretTracking extends Command{
     private static final double HUB_X = 8.27;   // lateral
     private static final double HUB_Z = 4.03;   // forward
 
+    // creates a pid for the turret
+    private static final PIDController turretPID = new PIDController(0.02, 0, 0);
+
     /**
-     * returns the angle of the turret to point at the center of the hub
+     * returns the speeed of the turret to point at the center of the hub
      * @param limelight
      * @param drivetrain
      * @param turret
-     * @return target angle (degrees)
+     * @return speed (percent %)
      */
     public static double TurretLineup(LimeLight limelight, CommandSwerveDrivetrain drivetrain,Turret turret) {
 
         Translation3d targetPos;
         double targetAngle = 0;
 
-        if (limelight.tv == 1) {
-            // Use Limelight
-            Pose3d tagPos = new Pose3d(
-                limelight.targetPoseRobotSpace[0],
-                limelight.targetPoseRobotSpace[1],
-                limelight.targetPoseRobotSpace[2],
-                new Rotation3d(
-                    Math.toRadians(limelight.targetPoseRobotSpace[3]),
-                    Math.toRadians(limelight.targetPoseRobotSpace[4]),
-                    Math.toRadians(limelight.targetPoseRobotSpace[5])
-                )
-            );
-
-            Transform3d tagToBoxCenter = new Transform3d(
-                new Translation3d(-0.5969, 0, 0),
-                new Rotation3d()
-            );
-
-            Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
-            targetPos = boxCenterPos.getTranslation();
-            targetAngle = Math.toDegrees(Math.atan2(targetPos.getX(),targetPos.getZ()));
-
-        } 
-        else {
-            double robotYaw = drivetrain.getState().Pose.getRotation().getRadians();
-            double turretYaw = Math.toRadians(turret.getAngle());
-
-            double totalYaw = robotYaw + turretYaw;
-
-            // rotate relative vector to hub
-            double xRel = HUB_X - drivetrain.getState().Pose.getX();
-            double zRel = HUB_Z - drivetrain.getState().Pose.getY();
-
-            double xRot = xRel * Math.cos(totalYaw) - zRel * Math.sin(totalYaw);
-            double zRot = xRel * Math.sin(totalYaw) + zRel * Math.cos(totalYaw);
-
-            targetAngle = Math.toDegrees(Math.atan2(xRot, zRot));
+        // if we cant see a tag dont move
+        if (limelight.tv == 0){
+            return 0;
         }
 
-        return targetAngle;
+        // Use Limelight
+        Pose3d tagPos = new Pose3d(
+            limelight.targetPoseRobotSpace[0],
+            limelight.targetPoseRobotSpace[1],
+            limelight.targetPoseRobotSpace[2],
+            new Rotation3d(
+                Math.toRadians(limelight.targetPoseRobotSpace[3]),
+                Math.toRadians(limelight.targetPoseRobotSpace[4]),
+                Math.toRadians(limelight.targetPoseRobotSpace[5])
+            )
+        );
+
+        Transform3d tagToBoxCenter = new Transform3d(
+            new Translation3d(-0.5969, 0, 0),
+            new Rotation3d()
+        );
+
+        Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
+        targetPos = boxCenterPos.getTranslation();
+        
+        double angleError = Math.toDegrees(
+        Math.atan2(targetPos.getX(), targetPos.getZ())
+        );
+
+        // We want angleError -> 0
+        double output = turretPID.calculate(angleError, 0);
+        // clamp output speed
+        output = MathUtil.clamp(output, -0.35, 0.35);
+
+        return output;
 }
 
     /**
