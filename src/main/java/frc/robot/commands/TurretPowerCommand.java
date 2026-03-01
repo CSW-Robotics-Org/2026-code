@@ -74,7 +74,7 @@ public class TurretPowerCommand extends Command {
         }
 
         // Quadratic formula for shooter power
-        double shooterPow = 0.5 + 0.0199 * targetDistance + 0.00347 * Math.pow(targetDistance, 2);
+        double shooterPow = 0.48 + 0.0199 * targetDistance + 0.00347 * Math.pow(targetDistance, 2);
         shooterPow = MathUtil.clamp(shooterPow,-1,1);
         turret.setShooterMotor(shooterPow + shooterPowerOffset);
     }
@@ -95,7 +95,7 @@ public class TurretPowerCommand extends Command {
      */
     public void adjustPowerOffset(double amount) {
         shooterPowerOffset += amount;
-        shooterPowerOffset = MathUtil.clamp(shooterPowerOffset, 0.0, 1.0);
+        shooterPowerOffset = MathUtil.clamp(shooterPowerOffset, -1, 1.0);
     }
     
     /**

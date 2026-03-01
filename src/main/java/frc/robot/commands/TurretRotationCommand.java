@@ -21,12 +21,12 @@ public class TurretRotationCommand extends Command {
     private final double HUB_Z = 4.03;   // forward
 
     // creates a pid for the turret
-    private static final PIDController turretPID = new PIDController(0.02, 0, 0);
+    private static final PIDController turretPID = new PIDController(0.0055, 0, 0.0);
 
     public Translation3d targetPos;
     public Pose3d tagPos;
     Transform3d tagToBoxCenter = new Transform3d(
-        new Translation3d(-0.5969, 0, 0),
+        new Translation3d(0.5969, 0, 0),
         new Rotation3d()
     );
     public Pose3d boxCenterPos;
@@ -73,13 +73,22 @@ public class TurretRotationCommand extends Command {
         // angle error to minimize
         angleError = Math.toDegrees(
         Math.atan2(targetPos.getX(), targetPos.getZ())
-        );
+        ) - 1;
 
         // We want angleError -> 0
-        double output = turretPID.calculate(angleError, 0);
+        double output = -turretPID.calculate(angleError, 0);
+
+        if (Math.abs(angleError) < 2){
+            output = 0;
+        }
+        if (limelight.tv == 0){
+            output = 0;
+        }
         // clamp output speed
         output = MathUtil.clamp(output, -0.35, 0.35);
         // Calculate speed and shooter power each tick
+        System.out.println("Angle Error: " + angleError);
+        System.out.println("output: " + output);
         turret.setRotationMotor(output);
     }
 
@@ -88,12 +97,8 @@ public class TurretRotationCommand extends Command {
      * @return true if turret is lined up
      */
     public boolean rotationReady(){
-        return Math.abs(
-            Math.toDegrees(
-                Math.atan2(targetPos.getX(), targetPos.getZ())
-            )
-        ) 
-        < 2.0;
+        return Math.abs(angleError)
+        < 2;
     }
 
     @Override

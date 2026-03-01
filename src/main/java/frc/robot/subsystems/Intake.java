@@ -25,16 +25,16 @@ public class Intake extends SubsystemBase{
     public double intakeTargetRPM = 0;
 
     // creates the motor that will rotate the intake downwards
-    private SparkMax left_rot_motor;
+    public SparkMax left_rot_motor;
     // creates the motor that will rotate the intake downwards
-    private SparkMax right_rot_motor;
+    public SparkMax right_rot_motor;
     // creates a variable to store the position of the intake arm
     private double intakePos = 0;
     // stores the encoder of the rotation motor so that we can measure the rotation
     private RelativeEncoder leftRotEncoder;
 
     // pid controller to hold rotation
-    private double rotationTargetDegrees = 0;  // 0 = down, 90 = up
+    private double rotationTargetDegrees = 90;  // 0 = down, 90 = up
     private PIDController rotationPID = new PIDController(0.01, 0, 0.0);
 
     // creates a pid controller for the feeder
@@ -61,8 +61,6 @@ public class Intake extends SubsystemBase{
 
         // applys the config to the motors
         intake_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        left_rot_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        right_rot_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         // tell the encoder we start facing straight up
         double startingRotations = 90.0 / 360.0; // convert 90° to rotations (encoder units)
@@ -75,7 +73,7 @@ public class Intake extends SubsystemBase{
      * @param degrees 0 = down, 90 = up
      */
     public void setRotationTarget(double degrees){
-        rotationTargetDegrees = MathUtil.clamp(degrees, 0, 90);
+        rotationTargetDegrees = MathUtil.clamp(degrees, 0, 180);
     }
 
     /**
@@ -89,14 +87,20 @@ public class Intake extends SubsystemBase{
 
     // Method that runs ~ every 20 ms
     public void periodic(){
-        // updates the intake possition
-        intakePos = leftRotEncoder.getPosition();
-        double currentDegrees = intakePos * 360; // convert rotations to degrees
+        // // updates the intake possition
+        // intakePos = leftRotEncoder.getPosition();
+        // double currentDegrees = intakePos * 360; // convert rotations to degrees
 
-        // PID loop to move the arm to the target
-        double pidOutput = rotationPID.calculate(currentDegrees, rotationTargetDegrees);
-        // optionally clamp output so it doesn't jerk the motor too hard
-        pidOutput = MathUtil.clamp(pidOutput, -1, 1);
+        // System.out.println("Target Degrees: " + rotationTargetDegrees);
+        // System.out.println("Current Degrees: " + currentDegrees);
+
+        // // PID loop to move the arm to the target
+        // double pidOutput = rotationPID.calculate(currentDegrees, rotationTargetDegrees);
+        // pidOutput = MathUtil.clamp(pidOutput, -1, 1);
+        // System.out.println("PID output: " + pidOutput);
+
+        // left_rot_motor.set(pidOutput);
+        // right_rot_motor.set(-pidOutput);
 
         // intake loop to hold speed
         double intakeCurrentRPM = intake_encoder.getVelocity();

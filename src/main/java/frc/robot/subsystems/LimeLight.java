@@ -74,7 +74,7 @@ public class LimeLight extends SubsystemBase {
 
         tv = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("tv").getDouble(0);
 
-        System.out.println("X: " + targetPoseRobotSpace[0] + ", Y: " + targetPoseRobotSpace[1] + ", TV: " + tv);
+        // System.out.println("X: " + targetPoseRobotSpace[0] + ", Y: " + targetPoseRobotSpace[1] + ", TV: " + tv);
         
     }
 

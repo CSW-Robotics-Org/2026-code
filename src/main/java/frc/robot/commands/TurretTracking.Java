@@ -33,7 +33,6 @@ public class TurretTracking extends Command{
     public static double TurretLineup(LimeLight limelight, CommandSwerveDrivetrain drivetrain,Turret turret) {
 
         Translation3d targetPos;
-        double targetAngle = 0;
 
         // if we cant see a tag dont move
         if (limelight.tv == 0){
@@ -65,7 +64,7 @@ public class TurretTracking extends Command{
         );
 
         // We want angleError -> 0
-        double output = turretPID.calculate(angleError, 0);
+        double output = turretPID.calculate(0, angleError);
         // clamp output speed
         output = MathUtil.clamp(output, -0.35, 0.35);
 

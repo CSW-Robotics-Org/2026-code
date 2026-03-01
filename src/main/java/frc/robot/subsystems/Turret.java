@@ -12,14 +12,13 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.commands.TurretTracking;
 
 public class Turret extends SubsystemBase{
     
     // Creates the shooter motor
     private SparkMax s_motor;
     // stores the encoder for the sparkmax
-    private RelativeEncoder s_encoder;
+    public RelativeEncoder s_encoder;
     // stores the target rpm
     public double targetRPM = 0;
 
@@ -52,14 +51,9 @@ public class Turret extends SubsystemBase{
     private SimpleMotorFeedforward feederFF = new SimpleMotorFeedforward(0.2, 0.0021);
 
     // creates a pid controller for the feeder
-    private PIDController turretPID = new PIDController(0.0004, 0, 0);
+    private PIDController rotPID = new PIDController(0.0004, 0, 0);
     // creates the feed forward for the feeder
-    private SimpleMotorFeedforward turretFF = new SimpleMotorFeedforward(0.2, 0.0021);
-
-
-    // the turret to motor gear ration
-    private static final double TURRET_GEAR_RATIO = 8.0;
-
+    private SimpleMotorFeedforward rotFF = new SimpleMotorFeedforward(0.2, 0.0021);
     /**
      * Constructor
      * @param shooter_id (id of the shooter motor)
@@ -83,26 +77,15 @@ public class Turret extends SubsystemBase{
         rot_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         feed_motor.configure(config,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
-
-    public void setTurret(double speed) {
-        rot_motor.set(speed);
-    }
-
-    /**
-     * Sets the turret motor, manual
-     * @param speed
-     */
-    public void setTurret(double speed) {
-        rot_motor.set(speed);
-    }
     
     /**
      * Sets the speed of the rotation motor
      * @param speed
      */
     public void setRotationMotor(double speed) {
-        speed = MathUtil.clamp(speed, -1, 1);
-        rotTargetRPM = speed*5676;
+        // speed = MathUtil.clamp(speed, -1, 1);
+        // rotTargetRPM = speed*5676;
+        rot_motor.set(speed);
     }
 
     /**
@@ -143,13 +126,11 @@ public class Turret extends SubsystemBase{
     public void periodic(){
 
         // turret logic so we dont break the turret
-        if (left_lim_switch.get() && rot_encoder.getVelocity() < 0) {
+        if (left_lim_switch.get() && rot_encoder.getVelocity() > 0) {
             rot_motor.set(0);
-            rot_encoder.setPosition(-85.0 / 360.0 * TURRET_GEAR_RATIO);
         }
-        if (right_lim_switch.get() && rot_encoder.getVelocity()  > 0) {
+        if (right_lim_switch.get() && rot_encoder.getVelocity()  < 0) {
             rot_motor.set(0);
-            rot_encoder.setPosition(85.0 / 360.0 * TURRET_GEAR_RATIO);
         }
 
         // shooter loop to hold speed
@@ -169,13 +150,13 @@ public class Turret extends SubsystemBase{
         voltage = MathUtil.clamp(voltage, -12, 12);
         feed_motor.setVoltage(voltage);
 
-        // turret loop to hold speed
-        double rotCurrentRPM = f_encoder.getVelocity();
-        double rotPIDOutput = turretPID.calculate(rotCurrentRPM,ftargetRPM);
-        double rotffOutput = turretFF.calculate(ftargetRPM);
-        double rotVoltage = rotPIDOutput + rotffOutput;
-        rotVoltage = MathUtil.clamp(rotVoltage, -12, 12);
-        feed_motor.setVoltage(rotVoltage);
+        // // turret loop to hold speed
+        // double rotCurrentRPM = rot_encoder.getVelocity();
+        // double rotPIDOutput = rotPID.calculate(rotCurrentRPM,rotTargetRPM);
+        // double rotffOutput = rotFF.calculate(rotTargetRPM);
+        // double rotVoltage = rotPIDOutput + rotffOutput;
+        // rotVoltage = MathUtil.clamp(rotVoltage, -12, 12);
+        // rot_motor.setVoltage(rotVoltage);
 
     }
     

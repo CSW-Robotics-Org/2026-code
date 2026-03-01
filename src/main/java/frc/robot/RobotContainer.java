@@ -10,6 +10,8 @@ import java.io.File;
 import java.util.logging.LogManager;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.configs.MountPoseConfigs;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
@@ -73,8 +75,8 @@ public class RobotContainer {
     private SendableChooser<Command> autoChooser;
 
     // ID's will be changed
-    public final Hopper m_hopper = new Hopper(0);
-    public final Intake m_intake = new Intake(0, 0, 0);
+    public final Hopper m_hopper = new Hopper(35);
+    public final Intake m_intake = new Intake(17, 7, 6);
     
     // creates our limelights
     public final Turret m_turret = new Turret(8, 10, 15);
@@ -96,6 +98,12 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
+
+        Pigeon2 pigeon = new Pigeon2(0);
+        var m_config = new MountPoseConfigs();
+        m_config.MountPoseYaw = 90;
+        pigeon.getConfigurator().apply(m_config);
+
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         // Drivetrain will execute this command periodically
@@ -148,7 +156,7 @@ public class RobotContainer {
         // ##### DRIVER CONTROLS #####
 
             // Theoretically resets the field reletive possitioning
-            new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+            new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(()-> drivetrain.seedFieldCentric()));
             
             // Theoretically applies the break works great in the sim
             new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
@@ -171,31 +179,42 @@ public class RobotContainer {
 
             // (B) Button -> runs the turret rotation command
             new JoystickButton(m_operator,3).whileTrue(TurretAngleCommand);
-
-            // right bumber -> set turret motor to 25%
-            new JoystickButton(m_operator, 6)
-                .whileTrue( new InstantCommand(()-> m_turret.setTurret(0.25)))
-                .onFalse( new InstantCommand(()-> m_turret.setTurret(0)));
             
             // (A) Button -> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 2)
                 .onTrue( new SequentialCommandGroup(
-                    new InstantCommand(()->m_turret.setFeederMotor(0.35)),
-                    new InstantCommand(()->m_hopper.setHopperMotor(0.35))))
+                    new InstantCommand(()->m_turret.setFeederMotor(0.5)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0.5)
+                    )))
                 .onFalse(new SequentialCommandGroup(
                     new InstantCommand(()->m_turret.setFeederMotor(0)),
-                    new InstantCommand(()->m_hopper.setHopperMotor(0))));
+                    new InstantCommand(()->m_hopper.setHopperMotor(0))
+                    ));
+
+            // // (A) Button -> runs the feeder motor and the hopper motor
+            // new JoystickButton(m_operator, 10)
+            //     .onTrue( new SequentialCommandGroup(
+            //         new InstantCommand(()->m_turret.setFeederMotor(-0.5)),
+            //         new InstantCommand(()->m_hopper.setHopperMotor(-0.5)
+            //         )))
+            //     .onFalse(new SequentialCommandGroup(
+            //         new InstantCommand(()->m_turret.setFeederMotor(0)),
+            //         new InstantCommand(()->m_hopper.setHopperMotor(0))
+            //         ));
 
             // (X) Button -> runs the full shoot command
             new JoystickButton(m_operator,1).whileTrue(FullShoot);
 
-            // right bumper -> set turret motor to 25%
-            new JoystickButton(m_operator, 6)
-                .whileTrue( new InstantCommand(()-> m_turret.setTurret(0.25)))
-                .onFalse( new InstantCommand(()-> m_turret.setTurret(0)));
-            
-            // (Start) Button -> deploys intake
-            new JoystickButton(m_operator,10).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(0)));
+            // new JoystickButton(m_operator,10).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(180)));
+            // new JoystickButton(m_operator,9).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(90)));
+    
+            new JoystickButton(m_operator,5)
+                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(0.5)))
+                .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
+
+            new JoystickButton(m_operator,7)
+                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.5)))
+                .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
 
             // (RT) Right Trigger -> While holding it changes the target rotation angle based off of the left stick x
             new JoystickButton(m_operator, 8)
@@ -208,15 +227,15 @@ public class RobotContainer {
             // DPad Up -> increase power offset
             new POVButton(m_operator, 0).onTrue(
                 new SequentialCommandGroup(
-                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(0.05)),
-                    new InstantCommand(() -> FullShoot.adjustPowerOffset(0.05))
+                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(0.05))
+                    // new InstantCommand(() -> FullShoot.adjustPowerOffset(0.05))
                 )
             );
             // DPad Down -> decrease power offset
             new POVButton(m_operator, 180).onTrue(
                 new SequentialCommandGroup(
-                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(-0.05)),
-                    new InstantCommand(() -> FullShoot.adjustPowerOffset(-0.05))
+                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(-0.05))
+                    // new InstantCommand(() -> FullShoot.adjustPowerOffset(-0.05))
                 )
             );
 
