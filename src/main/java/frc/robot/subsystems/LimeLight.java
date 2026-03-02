@@ -54,6 +54,9 @@ public class LimeLight extends SubsystemBase {
 
     public double[] targetPoseRobotSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("targetpose_robotspace").getDoubleArray(new double[6]);
 
+
+    public double[] robotPosTargetSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("botpose_targetspace").getDoubleArray(new double[6]);
+
     public void setAprilTag() {
         NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("pipeline").setNumber(0);
     }
@@ -71,6 +74,8 @@ public class LimeLight extends SubsystemBase {
         botPos = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("botpose").getDoubleArray(new double[6]);
 
         targetPoseRobotSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("targetpose_robotspace").getDoubleArray(new double[6]);
+
+        robotPosTargetSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("botpose_targetspace").getDoubleArray(new double[6]);
 
         tv = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("tv").getDouble(0);
 

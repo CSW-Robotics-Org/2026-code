@@ -110,8 +110,8 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
+                drive.withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
                     .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
             )
         );
@@ -191,29 +191,25 @@ public class RobotContainer {
                     new InstantCommand(()->m_hopper.setHopperMotor(0))
                     ));
 
-            // // (A) Button -> runs the feeder motor and the hopper motor
-            // new JoystickButton(m_operator, 10)
-            //     .onTrue( new SequentialCommandGroup(
-            //         new InstantCommand(()->m_turret.setFeederMotor(-0.5)),
-            //         new InstantCommand(()->m_hopper.setHopperMotor(-0.5)
-            //         )))
-            //     .onFalse(new SequentialCommandGroup(
-            //         new InstantCommand(()->m_turret.setFeederMotor(0)),
-            //         new InstantCommand(()->m_hopper.setHopperMotor(0))
-            //         ));
-
             // (X) Button -> runs the full shoot command
             new JoystickButton(m_operator,1).whileTrue(FullShoot);
 
             // new JoystickButton(m_operator,10).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(180)));
             // new JoystickButton(m_operator,9).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(90)));
     
-            new JoystickButton(m_operator,5)
-                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(0.5)))
-                .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
+            // (A) Button -> runs the feeder motor and the hopper motor
+            new JoystickButton(m_operator, 2)
+                .onTrue( new SequentialCommandGroup(
+                    new InstantCommand(()->m_intake.setIntakeMotor(0.3)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0.5)
+                    )))
+                .onFalse(new SequentialCommandGroup(
+                    new InstantCommand(()->m_turret.setFeederMotor(0)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0))
+                    ));
 
             new JoystickButton(m_operator,7)
-                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.5)))
+                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)))
                 .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
 
             // (RT) Right Trigger -> While holding it changes the target rotation angle based off of the left stick x

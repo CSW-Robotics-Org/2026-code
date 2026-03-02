@@ -26,7 +26,7 @@ public class TurretRotationCommand extends Command {
     public Translation3d targetPos;
     public Pose3d tagPos;
     Transform3d tagToBoxCenter = new Transform3d(
-        new Translation3d(0.5969, 0, 0),
+        new Translation3d(-0.5969, 0, 0),
         new Rotation3d()
     );
     public Pose3d boxCenterPos;
@@ -55,13 +55,13 @@ public class TurretRotationCommand extends Command {
 
         // Use Limelight for pos 3s
         tagPos = new Pose3d(
-            limelight.targetPoseRobotSpace[0],
-            limelight.targetPoseRobotSpace[1],
-            limelight.targetPoseRobotSpace[2],
+            limelight.robotPosTargetSpace[0],
+            limelight.robotPosTargetSpace[1],
+            limelight.robotPosTargetSpace[2],
             new Rotation3d(
-                Math.toRadians(limelight.targetPoseRobotSpace[3]),
-                Math.toRadians(limelight.targetPoseRobotSpace[4]),
-                Math.toRadians(limelight.targetPoseRobotSpace[5])
+                Math.toRadians(limelight.robotPosTargetSpace[3]),
+                Math.toRadians(limelight.robotPosTargetSpace[4]),
+                Math.toRadians(limelight.robotPosTargetSpace[5])
             )
         );
 
@@ -73,7 +73,7 @@ public class TurretRotationCommand extends Command {
         // angle error to minimize
         angleError = Math.toDegrees(
         Math.atan2(targetPos.getX(), targetPos.getZ())
-        ) - 1;
+        )+1;
 
         // We want angleError -> 0
         double output = -turretPID.calculate(angleError, 0);
@@ -89,7 +89,7 @@ public class TurretRotationCommand extends Command {
         // Calculate speed and shooter power each tick
         System.out.println("Angle Error: " + angleError);
         System.out.println("output: " + output);
-        turret.setRotationMotor(output);
+        // turret.setRotationMotor(output);
     }
 
     /**
