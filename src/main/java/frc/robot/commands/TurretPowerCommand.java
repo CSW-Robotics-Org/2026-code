@@ -25,7 +25,7 @@ public class TurretPowerCommand extends Command {
     public Translation3d targetPos;
     public double targetDistance = 0;
     public Transform3d tagToBoxCenter = new Transform3d(
-        new Translation3d(-0.5969, 0, 0),
+        new Translation3d(0, 0, -0.5969),
         new Rotation3d()
     );
 

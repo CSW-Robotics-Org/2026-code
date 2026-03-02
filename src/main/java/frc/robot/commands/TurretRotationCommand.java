@@ -26,7 +26,7 @@ public class TurretRotationCommand extends Command {
     public Translation3d targetPos;
     public Pose3d tagPos;
     Transform3d tagToBoxCenter = new Transform3d(
-        new Translation3d(-0.5969, 0, 0),
+        new Translation3d(0, 0, -0.5969),
         new Rotation3d()
     );
     public Pose3d boxCenterPos;
@@ -55,13 +55,13 @@ public class TurretRotationCommand extends Command {
 
         // Use Limelight for pos 3s
         tagPos = new Pose3d(
-            limelight.robotPosTargetSpace[0],
-            limelight.robotPosTargetSpace[1],
-            limelight.robotPosTargetSpace[2],
+            limelight.targetPoseRobotSpace[0],
+            limelight.targetPoseRobotSpace[1],
+            limelight.targetPoseRobotSpace[2],
             new Rotation3d(
-                Math.toRadians(limelight.robotPosTargetSpace[3]),
-                Math.toRadians(limelight.robotPosTargetSpace[4]),
-                Math.toRadians(limelight.robotPosTargetSpace[5])
+                Math.toRadians(limelight.targetPoseRobotSpace[3]),
+                Math.toRadians(limelight.targetPoseRobotSpace[4]),
+                Math.toRadians(limelight.targetPoseRobotSpace[5])
             )
         );
 
