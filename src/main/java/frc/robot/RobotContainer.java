@@ -198,13 +198,13 @@ public class RobotContainer {
             // new JoystickButton(m_operator,9).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(90)));
     
             // (A) Button -> runs the feeder motor and the hopper motor
-            new JoystickButton(m_operator, 2)
+            new JoystickButton(m_operator, 5)
                 .onTrue( new SequentialCommandGroup(
                     new InstantCommand(()->m_intake.setIntakeMotor(0.3)),
                     new InstantCommand(()->m_hopper.setHopperMotor(0.5)
                     )))
                 .onFalse(new SequentialCommandGroup(
-                    new InstantCommand(()->m_turret.setFeederMotor(0)),
+                    new InstantCommand(()->m_intake.setIntakeMotor(0)),
                     new InstantCommand(()->m_hopper.setHopperMotor(0))
                     ));
 

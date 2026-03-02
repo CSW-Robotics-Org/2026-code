@@ -64,16 +64,11 @@ public class TurretRotationCommand extends Command {
                 Math.toRadians(limelight.targetPoseRobotSpace[5])
             )
         );
-
-        // set the box center pos
-        boxCenterPos = tagPos.transformBy(tagToBoxCenter);
-        // find the target pose
-        targetPos = boxCenterPos.getTranslation();
         
         // angle error to minimize
         angleError = Math.toDegrees(
-        Math.atan2(targetPos.getX(), targetPos.getZ())
-        )+1;
+        Math.atan2(tagPos.getX(), tagPos.getZ())
+        )+3;
 
         // We want angleError -> 0
         double output = -turretPID.calculate(angleError, 0);
@@ -89,7 +84,7 @@ public class TurretRotationCommand extends Command {
         // Calculate speed and shooter power each tick
         System.out.println("Angle Error: " + angleError);
         System.out.println("output: " + output);
-        // turret.setRotationMotor(output);
+        turret.setRotationMotor(output);
     }
 
     /**

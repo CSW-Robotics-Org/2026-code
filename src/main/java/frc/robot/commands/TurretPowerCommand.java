@@ -59,18 +59,17 @@ public class TurretPowerCommand extends Command {
                 )
             );
 
-            boxCenterPos = tagPos.transformBy(tagToBoxCenter);
-            targetPos = boxCenterPos.getTranslation();
             // stores the target distance
-            targetDistance = Math.hypot(targetPos.getX(), targetPos.getZ());
+            targetDistance = Math.hypot(tagPos.getX(), tagPos.getZ());
 
         } else {
-            // rotate relative vector to hub
-            double xRel = HUB_X - drivetrain.getState().Pose.getX();
-            double zRel = HUB_Z - drivetrain.getState().Pose.getY();
+            // // rotate relative vector to hub
+            // double xRel = HUB_X - drivetrain.getState().Pose.getX();
+            // double zRel = HUB_Z - drivetrain.getState().Pose.getY();
 
-            // stores the target distance
-            targetDistance = Math.hypot(xRel, zRel);
+            // // stores the target distance
+            // targetDistance = Math.hypot(xRel, zRel);
+            targetDistance = 0;
         }
 
         // Quadratic formula for shooter power
