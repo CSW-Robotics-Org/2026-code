@@ -6,23 +6,50 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.io.File;
 import java.util.logging.LogManager;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.configs.MountPoseConfigs;
+import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.hal.FRCNetComm.tResourceType;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.LimeLightTracking;
+import frc.robot.commands.DriveTracking;
+import frc.robot.commands.FullShootCommand;
+import frc.robot.commands.TurretPowerCommand;
+import frc.robot.commands.TurretRotationCommand;
+import frc.robot.commands.TurretTracking;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Hopper;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LimeLight;
+import frc.robot.subsystems.Turret;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.FollowPathCommand;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -31,36 +58,60 @@ public class RobotContainer {
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
             .withDeadband(MaxSpeed * 0.1).withRotationalDeadband(MaxAngularRate * 0.1) // Add a 10% deadband
-            .withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop control for drive motors
+            .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
-    private final SwerveRequest.PointWheelsAt point = new SwerveRequest.PointWheelsAt();
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
     // creates our controllers
-    private final CommandXboxController joystick = new CommandXboxController(2);
+    private final XboxController m_operator = new XboxController(2);
     private final Joystick l_joystick = new Joystick(0);
     private final Joystick r_joystick = new Joystick(1);
 
-    // creates our limelights
-    public final LimeLight limelight = new LimeLight("limelight-front",0,0,0);
 
+    // auto picker for command  /* Path follower */
+    private SendableChooser<Command> autoChooser;
+
+    // ID's will be changed
+    public final Hopper m_hopper = new Hopper(35);
+    public final Intake m_intake = new Intake(17, 7, 6);
+    
+    // creates our limelights
+    public final Turret m_turret = new Turret(8, 10, 15);
+    public final LimeLight limelight = new LimeLight("limelight-front",0,0,0,drivetrain,m_turret);
+    
+    public TurretPowerCommand ShooterPowerCommand = new TurretPowerCommand(m_turret,limelight,drivetrain);
+    public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight,drivetrain);
+    public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,drivetrain,m_hopper);
 
     public RobotContainer() {
         configureBindings();
+
+        // creates the autobuilder
+        autoChooser = AutoBuilder.buildAutoChooser("Default");
+        // puts the autobuilder on smart dashboard
+        SmartDashboard.putData("Auto Mode", autoChooser);
+        // warms up pathplanner so we dont have issues starting
+        FollowPathCommand.warmupCommand().schedule();
     }
 
     private void configureBindings() {
+
+        Pigeon2 pigeon = new Pigeon2(0);
+        var m_config = new MountPoseConfigs();
+        m_config.MountPoseYaw = 90;
+        pigeon.getConfigurator().apply(m_config);
+
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         // Drivetrain will execute this command periodically
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
+                drive.withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
                     .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
             )
         );
@@ -73,68 +124,127 @@ public class RobotContainer {
         );
 
 
-        // Theoretically resets the field reletive possitioning
-        new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
-        
-        // Theoretically applies the break works great in the sim
-        new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
 
-        // Limelight tracking button
-        new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(()-> LimeLightTracking.LineUpLeft(drivetrain,limelight)));
 
-        // robot rel
-        new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
-            new SwerveRequest.RobotCentric()
-                .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
-        
-        ));
+        // #### AUTO COMMANDS ####
 
-        // point at movement, i.e. we maintain robot 
-        new JoystickButton(r_joystick,6).whileTrue(drivetrain.applyRequest(()-> 
-            new SwerveRequest.RobotCentric()
-                .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
-                .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                .withRotationalRate(LimeLightTracking.PointAt(limelight))
-        
-        ));
+            // Freeze wheels command
+            NamedCommands.registerCommand("FreezeWheels", 
+                new InstantCommand(()-> 
+                    drivetrain.applyRequest(()-> 
+                        drive.withVelocityX(0)
+                        .withVelocityY(0)
+                        .withRotationalRate(0)) 
+                )
+            );
 
-        /** .a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        ));
+            // Named command for shooting
+            NamedCommands.registerCommand("Shoot", ShooterPowerCommand);
+            
+            // Named command that shoots balls from hopper through shooter
+            NamedCommands.registerCommand("FeedAndShoot", 
+                new SequentialCommandGroup(
+                    // new InstantCommand(()-> m_hopper.setRollerMotor(0.5)),
+                    // Commands.race(ShooterPowerCommand,)
+                )
+            );
 
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+       
 
-        // Reset the field-centric heading on left bumper press.
-        joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-        */
 
+
+        // ##### DRIVER CONTROLS #####
+
+            // Theoretically resets the field reletive possitioning
+            new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(()-> drivetrain.seedFieldCentric()));
+            
+            // Theoretically applies the break works great in the sim
+            new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
+
+            // robot rel
+            new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
+                new SwerveRequest.RobotCentric()
+                    .withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
+            
+            ));
+
+
+
+        // ##### OPERATOR CONTROLS #####
+
+            // (Y) Button -> runs the shooter power command
+            new JoystickButton(m_operator,4).whileTrue(ShooterPowerCommand);
+
+            // (B) Button -> runs the turret rotation command
+            new JoystickButton(m_operator,3).whileTrue(TurretAngleCommand);
+            
+            // (A) Button -> runs the feeder motor and the hopper motor
+            new JoystickButton(m_operator, 2)
+                .onTrue( new SequentialCommandGroup(
+                    new InstantCommand(()->m_turret.setFeederMotor(0.5)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0.5)
+                    )))
+                .onFalse(new SequentialCommandGroup(
+                    new InstantCommand(()->m_turret.setFeederMotor(0)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0))
+                    ));
+
+            // (X) Button -> runs the full shoot command
+            new JoystickButton(m_operator,1).whileTrue(FullShoot);
+
+            // new JoystickButton(m_operator,10).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(180)));
+            // new JoystickButton(m_operator,9).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(90)));
+    
+            // (A) Button -> runs the feeder motor and the hopper motor
+            new JoystickButton(m_operator, 5)
+                .onTrue( new SequentialCommandGroup(
+                    new InstantCommand(()->m_intake.setIntakeMotor(0.3)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0.5)
+                    )))
+                .onFalse(new SequentialCommandGroup(
+                    new InstantCommand(()->m_intake.setIntakeMotor(0)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0))
+                    ));
+
+            new JoystickButton(m_operator,7)
+                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)))
+                .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
+
+            // (RT) Right Trigger -> While holding it changes the target rotation angle based off of the left stick x
+            new JoystickButton(m_operator, 8)
+                .whileTrue(
+                    new RunCommand(() ->
+                        m_turret.setRotationMotor(m_operator.getLeftX()/5)
+                    ))
+                .onFalse(new InstantCommand(()->m_turret.setRotationMotor(0)));
+
+            // DPad Up -> increase power offset
+            new POVButton(m_operator, 0).onTrue(
+                new SequentialCommandGroup(
+                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(0.05))
+                    // new InstantCommand(() -> FullShoot.adjustPowerOffset(0.05))
+                )
+            );
+            // DPad Down -> decrease power offset
+            new POVButton(m_operator, 180).onTrue(
+                new SequentialCommandGroup(
+                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(-0.05))
+                    // new InstantCommand(() -> FullShoot.adjustPowerOffset(-0.05))
+                )
+            );
+
+
+
+
+        // puts the power offset and angle offset on sd
+        SmartDashboard.putNumber("Shooter Power Offset", ShooterPowerCommand.getPowerOffset());
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public Command getAutonomousCommand() {
-        // Simple drive forward auton
-        final var idle = new SwerveRequest.Idle();
-        return Commands.sequence(
-            // Reset our field centric heading to match the robot
-            // facing away from our alliance station wall (0 deg).
-            drivetrain.runOnce(() -> drivetrain.seedFieldCentric(Rotation2d.kZero)),
-            // Then slowly drive forward (away from us) for 5 seconds.
-            drivetrain.applyRequest(() ->
-                drive.withVelocityX(0.5)
-                    .withVelocityY(0)
-                    .withRotationalRate(0)
-            )
-            .withTimeout(5.0),
-            // Finally idle for the rest of auton
-            drivetrain.applyRequest(() -> idle)
-        );
-    }
+        return autoChooser.getSelected();
+    }   
+
 }
