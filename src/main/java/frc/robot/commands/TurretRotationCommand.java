@@ -19,17 +19,15 @@ public class TurretRotationCommand extends Command {
     // Hub position (meters)
     private final double HUB_X = 8.27;   // lateral
     private final double HUB_Z = 4.03;   // forward
+    private final double HUB_TAG_OFFSET_Z = -0.5969;
 
     // creates a pid for the turret
     private static final PIDController turretPID = new PIDController(0.0055, 0, 0.0);
 
     public Translation3d targetPos;
     public Pose3d tagPos;
-    Transform3d tagToBoxCenter = new Transform3d(
-        new Translation3d(0, 0, -0.5969),
-        new Rotation3d()
-    );
     public Pose3d boxCenterPos;
+    public double hypotenuse;
     public double angleError;
 
 
@@ -66,9 +64,9 @@ public class TurretRotationCommand extends Command {
         );
         
         // angle error to minimize
-        angleError = Math.toDegrees(
-        Math.atan2(tagPos.getX(), tagPos.getZ())
-        )+3;
+        hypotenuse = Math.hypot(tagPos.getX(), tagPos.getZ());
+
+        angleError = Math.atan2(HUB_TAG_OFFSET_Z, hypotenuse);
 
         // We want angleError -> 0
         double output = -turretPID.calculate(angleError, 0);
@@ -84,7 +82,7 @@ public class TurretRotationCommand extends Command {
         // Calculate speed and shooter power each tick
         System.out.println("Angle Error: " + angleError);
         System.out.println("output: " + output);
-        turret.setRotationMotor(output);
+        // turret.setRotationMotor(output);
     }
 
     /**

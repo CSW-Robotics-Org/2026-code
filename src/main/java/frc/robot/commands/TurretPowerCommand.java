@@ -21,16 +21,13 @@ public class TurretPowerCommand extends Command {
     // Hub position (meters)
     private final double HUB_X = 8.27;   // lateral
     private final double HUB_Z = 4.03;   // forward
+    private final double HUB_TAG_OFFSET_Z = -0.5969;
 
     public Translation3d targetPos;
     public double targetDistance = 0;
-    public Transform3d tagToBoxCenter = new Transform3d(
-        new Translation3d(0, 0, -0.5969),
-        new Rotation3d()
-    );
-
     public Pose3d boxCenterPos;
     public Pose3d tagPos;
+    public double hypotenuse;
 
     /**
      * Constructor of the command. Sets the shooter power based off of pos data.
@@ -59,8 +56,10 @@ public class TurretPowerCommand extends Command {
                 )
             );
 
+            // angle error to minimize
+            hypotenuse = Math.hypot(tagPos.getX(), tagPos.getZ());
             // stores the target distance
-            targetDistance = Math.hypot(tagPos.getX(), tagPos.getZ());
+            targetDistance = Math.hypot(hypotenuse,HUB_TAG_OFFSET_Z);
 
         } else {
             // // rotate relative vector to hub
