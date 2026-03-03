@@ -84,7 +84,7 @@ public class RobotContainer {
     
     public TurretPowerCommand ShooterPowerCommand = new TurretPowerCommand(m_turret,limelight,drivetrain);
     public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight,drivetrain);
-    public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,drivetrain,m_hopper);
+    public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,drivetrain,m_hopper,m_intake);
 
     public RobotContainer() {
         configureBindings();
@@ -140,6 +140,19 @@ public class RobotContainer {
 
             // Named command for shooting
             NamedCommands.registerCommand("Shoot", ShooterPowerCommand);
+
+            // Named command for shooting
+            NamedCommands.registerCommand("Rotate", new InstantCommand(()->m_turret.setRotationMotor(-0.2)));
+
+            // Named command for shooting
+            NamedCommands.registerCommand("Stop", new InstantCommand(()->m_turret.setRotationMotor(0.0)));
+
+            // named command for turret tracking
+            NamedCommands.registerCommand("TurretTrack", TurretAngleCommand);
+
+            NamedCommands.registerCommand("Intake", new InstantCommand(()-> m_intake.setIntakeMotor(0.3)));
+
+            NamedCommands.registerCommand("Unintake", new InstantCommand(()-> m_intake.setIntakeMotor(0)));
             
             // Named command that shoots balls from hopper through shooter
             NamedCommands.registerCommand("FeedAndShoot", 
@@ -223,17 +236,27 @@ public class RobotContainer {
             // DPad Up -> increase power offset
             new POVButton(m_operator, 0).onTrue(
                 new SequentialCommandGroup(
-                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(0.05))
-                    // new InstantCommand(() -> FullShoot.adjustPowerOffset(0.05))
+                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(0.01)),
+                    new InstantCommand(() -> FullShoot.adjustPowerOffset(0.01))
                 )
             );
             // DPad Down -> decrease power offset
             new POVButton(m_operator, 180).onTrue(
                 new SequentialCommandGroup(
-                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(-0.05))
-                    // new InstantCommand(() -> FullShoot.adjustPowerOffset(-0.05))
+                    new InstantCommand(() -> ShooterPowerCommand.adjustPowerOffset(-0.01)),
+                    new InstantCommand(() -> FullShoot.adjustPowerOffset(-0.01))
                 )
             );
+            // DPad 
+             new POVButton(m_operator, 90)
+                .onTrue(new InstantCommand(() -> m_turret.setRotationMotor(0.25)))
+                .onFalse(new InstantCommand(()-> m_turret.setRotationMotor(0)));
+            
+            // DPad left -> turn 
+            new POVButton(m_operator, 270)
+                .onTrue(new InstantCommand(() -> m_turret.setRotationMotor(-0.25)))
+                .onFalse(new InstantCommand(()-> m_turret.setRotationMotor(0)));;
+            
 
 
 

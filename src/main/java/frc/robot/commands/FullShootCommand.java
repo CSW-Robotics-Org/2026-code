@@ -13,6 +13,7 @@ import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Hopper;
+import frc.robot.subsystems.Intake;
 
 public class FullShootCommand extends Command {
 
@@ -20,6 +21,7 @@ public class FullShootCommand extends Command {
     private final LimeLight limelight;
     private final CommandSwerveDrivetrain drivetrain;
     private final Hopper hopper;
+    private final Intake intake;
     public double shooterPowerOffset = 0;
 
     private final TurretRotationCommand rotationCommand;
@@ -35,11 +37,12 @@ public class FullShootCommand extends Command {
      * @param drivetrain (drivetrain for pos estimation)
      * @param hopper (hopper to feed balls)
      */
-    public FullShootCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain,Hopper m_hopper) {
+    public FullShootCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain,Hopper m_hopper, Intake m_intake) {
         this.turret = turret;
         this.limelight = limelight;
         this.drivetrain = drivetrain;
         this.hopper = m_hopper;
+        this.intake = m_intake;
 
         rotationCommand = new TurretRotationCommand(turret, limelight, drivetrain);
         powerCommand = new TurretPowerCommand(turret, limelight, drivetrain);
@@ -55,6 +58,7 @@ public class FullShootCommand extends Command {
         if (rotationCommand.rotationReady() && powerCommand.readyToShoot()){
             turret.setFeederMotor(0.5);
             hopper.setHopperMotor(0.5);
+            intake.setIntakeMotor(0.3);
         }
 
     }
@@ -65,6 +69,7 @@ public class FullShootCommand extends Command {
         powerCommand.end(interrupted);
         hopper.setHopperMotor(0);
         turret.setFeederMotor(0);
+        intake.setIntakeMotor(0);
     }
 
     @Override
