@@ -56,11 +56,19 @@ public class TurretPowerCommand extends Command {
                 )
             );
 
-            // angle error to minimize
-            hypotenuse = Math.hypot(tagPos.getX(), tagPos.getZ());
-            // stores the target distance
-            targetDistance = Math.hypot(hypotenuse,HUB_TAG_OFFSET_Z);
+             double tagYawRad = Math.toRadians(limelight.targetPoseRobotSpace[5]);
 
+            double cos = Math.cos(tagYawRad);
+            double sin = Math.sin(tagYawRad);
+
+            // Offset in tag space (0, HUB_TAG_OFFSET_Z)
+            double offsetRobotX = HUB_TAG_OFFSET_Z * sin;
+            double offsetRobotZ =  HUB_TAG_OFFSET_Z * cos;
+
+            double hubX = tagPos.getX() + offsetRobotX;
+            double hubZ = tagPos.getZ() + offsetRobotZ;
+
+            targetDistance = Math.hypot(hubX, hubZ);
         } else {
             // // rotate relative vector to hub
             // double xRel = HUB_X - drivetrain.getState().Pose.getX();
@@ -72,7 +80,7 @@ public class TurretPowerCommand extends Command {
         }
 
         // Quadratic formula for shooter power
-        double shooterPow = 0.47 + 0.0199 * targetDistance + 0.00347 * Math.pow(targetDistance, 2);
+        double shooterPow = 0.51 + 0.0199 * targetDistance + 0.00347 * Math.pow(targetDistance, 2);
         shooterPow = MathUtil.clamp(shooterPow,-1,1);
         turret.setShooterMotor(shooterPow + shooterPowerOffset);
     }

@@ -62,11 +62,20 @@ public class TurretRotationCommand extends Command {
                 Math.toRadians(limelight.targetPoseRobotSpace[5])
             )
         );
-        
-        // angle error to minimize
-        hypotenuse = Math.hypot(tagPos.getX(), tagPos.getZ());
 
-        angleError = Math.atan2(HUB_TAG_OFFSET_Z, hypotenuse);
+        double tagYawRad = Math.toRadians(limelight.targetPoseRobotSpace[5]);
+
+        double cos = Math.cos(tagYawRad);
+        double sin = Math.sin(tagYawRad);
+
+        // Offset in tag space (0, HUB_TAG_OFFSET_Z)
+        double offsetRobotX = HUB_TAG_OFFSET_Z * sin;
+        double offsetRobotZ =  HUB_TAG_OFFSET_Z * cos;
+
+        double hubX = tagPos.getX() + offsetRobotX;
+        double hubZ = tagPos.getZ() + offsetRobotZ;
+
+        angleError = Math.toDegrees(Math.atan2(hubX, hubZ));
 
         // We want angleError -> 0
         double output = -turretPID.calculate(angleError, 0);
@@ -82,7 +91,7 @@ public class TurretRotationCommand extends Command {
         // Calculate speed and shooter power each tick
         System.out.println("Angle Error: " + angleError);
         System.out.println("output: " + output);
-        // turret.setRotationMotor(output);
+        turret.setRotationMotor(output);
     }
 
     /**
