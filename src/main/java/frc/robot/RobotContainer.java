@@ -30,6 +30,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
@@ -183,6 +185,24 @@ public class RobotContainer {
             
             ));
 
+            // rotation joystick button 3 -> bot shimmy
+            new JoystickButton(r_joystick, 3).onTrue(new SequentialCommandGroup(
+                new InstantCommand(()-> drivetrain.applyRequest(()-> 
+                    new SwerveRequest.RobotCentric()
+                        .withVelocityX(0) // Drive forward with negative Y (forward)
+                        .withVelocityY(0.2)
+                        .withRotationalRate(0) // Drive left with negative X (left)
+                )),
+                Commands.waitSeconds(0.1),
+                new InstantCommand(()-> drivetrain.applyRequest(()-> 
+                    new SwerveRequest.RobotCentric()
+                        .withVelocityX(0) // Drive forward with negative Y (forward)
+                        .withVelocityY(-0.2)
+                        .withRotationalRate(0) // Drive left with negative X (left)
+                )),
+                Commands.waitSeconds(0.1))
+            );
+
 
 
         // ##### OPERATOR CONTROLS #####
@@ -206,11 +226,17 @@ public class RobotContainer {
 
             // (X) Button -> runs the full shoot command
             new JoystickButton(m_operator,1).whileTrue(FullShoot);
+        
 
             // new JoystickButton(m_operator,10).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(180)));
             // new JoystickButton(m_operator,9).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(90)));
-    
-            // (A) Button -> runs the feeder motor and the hopper motor
+            
+            // Left trigger -> spits out fuel from intake
+            new JoystickButton(m_operator,7)
+                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)))
+                .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
+            
+            // left bumper-> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 5)
                 .onTrue( new SequentialCommandGroup(
                     new InstantCommand(()->m_intake.setIntakeMotor(0.3)),
@@ -219,11 +245,18 @@ public class RobotContainer {
                 .onFalse(new SequentialCommandGroup(
                     new InstantCommand(()->m_intake.setIntakeMotor(0)),
                     new InstantCommand(()->m_hopper.setHopperMotor(0))
-                    ));
+                    ));    
 
-            new JoystickButton(m_operator,7)
-                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)))
-                .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
+            // Right bumper - > intake shimmy
+            new JoystickButton(m_operator, 6).onTrue(
+                new SequentialCommandGroup(
+                    new InstantCommand(() -> m_intake.setIntakeMotor(-0.25)),
+                    Commands.waitSeconds(0.25),
+                    new InstantCommand(() -> m_intake.setIntakeMotor(0.25)),
+                    Commands.waitSeconds(0.25),
+                    new InstantCommand(() -> m_intake.setIntakeMotor(0.0))
+                )
+                );
 
             // (RT) Right Trigger -> While holding it changes the target rotation angle based off of the left stick x
             new JoystickButton(m_operator, 8)
@@ -247,12 +280,12 @@ public class RobotContainer {
                     new InstantCommand(() -> FullShoot.adjustPowerOffset(-0.01))
                 )
             );
-            // DPad 
+            // DPad right -> turn turret right
              new POVButton(m_operator, 90)
                 .onTrue(new InstantCommand(() -> m_turret.setRotationMotor(0.25)))
                 .onFalse(new InstantCommand(()-> m_turret.setRotationMotor(0)));
             
-            // DPad left -> turn 
+            // DPad left -> turn turret left 
             new POVButton(m_operator, 270)
                 .onTrue(new InstantCommand(() -> m_turret.setRotationMotor(-0.25)))
                 .onFalse(new InstantCommand(()-> m_turret.setRotationMotor(0)));;
