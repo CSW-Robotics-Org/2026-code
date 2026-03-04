@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "New Path"
+            "pathName": "Bottom to Depot"
           }
         },
         {
@@ -19,7 +19,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Copy of New Path"
+            "pathName": "Depot to Climb"
           }
         },
         {
@@ -31,7 +31,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Copy of Copy of New Path"
+            "pathName": "In Front of Climb to Climb For Some Reason "
           }
         },
         {
