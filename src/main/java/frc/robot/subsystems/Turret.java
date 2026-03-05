@@ -41,7 +41,7 @@ public class Turret extends SubsystemBase{
     private DigitalInput right_lim_switch = new DigitalInput(1);
 
     // creates a pid controller for the shooter
-    private PIDController shooterPID = new PIDController(0.0004, 0, 0);
+    private PIDController shooterPID = new PIDController(0.0015, 0, 0);
     // creates the feed forward for the shooter
     private SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(0.2, 0.0021);
 

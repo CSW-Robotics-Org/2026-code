@@ -22,7 +22,7 @@ public class TurretRotationCommand extends Command {
     private final double HUB_TAG_OFFSET_Z = -0.5969;
 
     // creates a pid for the turret
-    private static final PIDController turretPID = new PIDController(0.0055, 0, 0.0);
+    private static final PIDController turretPID = new PIDController(0.11, 0, 0);
 
     public Translation3d targetPos;
     public Pose3d tagPos;
@@ -63,26 +63,14 @@ public class TurretRotationCommand extends Command {
             )
         );
 
-        double tagYawRad = Math.toRadians(limelight.targetPoseRobotSpace[5]);
+        double hubX = tagPos.getX();
+        double hubZ = tagPos.getZ();
 
-        double cos = Math.cos(tagYawRad);
-        double sin = Math.sin(tagYawRad);
-
-        // Offset in tag space (0, HUB_TAG_OFFSET_Z)
-        double offsetRobotX = HUB_TAG_OFFSET_Z * sin;
-        double offsetRobotZ =  HUB_TAG_OFFSET_Z * cos;
-
-        double hubX = tagPos.getX() + offsetRobotX;
-        double hubZ = tagPos.getZ() + offsetRobotZ;
-
-        angleError = Math.toDegrees(Math.atan2(hubX, hubZ));
+        angleError = limelight.targetPoseRobotSpace[0]-0.08;
 
         // We want angleError -> 0
         double output = -turretPID.calculate(angleError, 0);
 
-        if (Math.abs(angleError) < 2){
-            output = 0;
-        }
         if (limelight.tv == 0){
             output = 0;
         }
@@ -100,7 +88,7 @@ public class TurretRotationCommand extends Command {
      */
     public boolean rotationReady(){
         return Math.abs(angleError)
-        < 2;
+        < 0.12;
     }
 
     @Override

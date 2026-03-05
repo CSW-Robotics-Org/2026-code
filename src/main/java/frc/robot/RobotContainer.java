@@ -141,13 +141,15 @@ public class RobotContainer {
             );
 
             // Named command for shooting
-            NamedCommands.registerCommand("Shoot", ShooterPowerCommand);
+            NamedCommands.registerCommand("Shoot", FullShoot);
 
             // Named command for shooting
-            NamedCommands.registerCommand("Rotate", new InstantCommand(()->m_turret.setRotationMotor(-0.2)));
+            //NamedCommands.registerCommand("Rotate", new InstantCommand(()->m_turret.setRotationMotor(-0.2)));
+            // rotate forever
+            NamedCommands.registerCommand("RotateForever", new InstantCommand(()->m_turret.setRotationMotor(-0.15)).repeatedly());
 
             // Named command for shooting
-            NamedCommands.registerCommand("Stop", new InstantCommand(()->m_turret.setRotationMotor(0.0)));
+            //NamedCommands.registerCommand("Stop", new InstantCommand(()->m_turret.setRotationMotor(0.0)));
 
             // named command for turret tracking
             NamedCommands.registerCommand("TurretTrack", TurretAngleCommand);
@@ -190,14 +192,14 @@ public class RobotContainer {
                 new InstantCommand(()-> drivetrain.applyRequest(()-> 
                     new SwerveRequest.RobotCentric()
                         .withVelocityX(0) // Drive forward with negative Y (forward)
-                        .withVelocityY(0.2)
+                        .withVelocityY(0.7)
                         .withRotationalRate(0) // Drive left with negative X (left)
                 )),
                 Commands.waitSeconds(0.1),
                 new InstantCommand(()-> drivetrain.applyRequest(()-> 
                     new SwerveRequest.RobotCentric()
                         .withVelocityX(0) // Drive forward with negative Y (forward)
-                        .withVelocityY(-0.2)
+                        .withVelocityY(-0.7)
                         .withRotationalRate(0) // Drive left with negative X (left)
                 )),
                 Commands.waitSeconds(0.1))
@@ -235,6 +237,12 @@ public class RobotContainer {
             new JoystickButton(m_operator,7)
                 .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)))
                 .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
+
+             // Left trigger -> spits out fuel from intake
+            new JoystickButton(m_operator,8)
+                .onTrue(new InstantCommand(()-> m_turret.setFeederMotor(-0.3)))
+                .onFalse(new InstantCommand(()-> m_turret.setFeederMotor(0)));
+            
             
             // left bumper-> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 5)
@@ -251,20 +259,14 @@ public class RobotContainer {
             new JoystickButton(m_operator, 6).onTrue(
                 new SequentialCommandGroup(
                     new InstantCommand(() -> m_intake.setIntakeMotor(-0.25)),
-                    Commands.waitSeconds(0.25),
+                    Commands.waitSeconds(0.15),
                     new InstantCommand(() -> m_intake.setIntakeMotor(0.25)),
-                    Commands.waitSeconds(0.25),
+                    Commands.waitSeconds(0.15),
                     new InstantCommand(() -> m_intake.setIntakeMotor(0.0))
                 )
                 );
 
-            // (RT) Right Trigger -> While holding it changes the target rotation angle based off of the left stick x
-            new JoystickButton(m_operator, 8)
-                .whileTrue(
-                    new RunCommand(() ->
-                        m_turret.setRotationMotor(m_operator.getLeftX()/5)
-                    ))
-                .onFalse(new InstantCommand(()->m_turret.setRotationMotor(0)));
+            
 
             // DPad Up -> increase power offset
             new POVButton(m_operator, 0).onTrue(

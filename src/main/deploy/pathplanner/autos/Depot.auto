@@ -5,27 +5,41 @@
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "parallel",
           "data": {
-            "name": "Rotate"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.25
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Stop"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "New Path"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "New Path"
+                }
+              },
+              {
+                "type": "race",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Rotate"
+                      }
+                    },
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 1.0
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "Stop"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
         {
