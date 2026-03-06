@@ -27,9 +27,6 @@ public class FullShootCommand extends Command {
 
     private final TurretRotationCommand rotationCommand;
     private final TurretPowerCommand powerCommand;
-
-    private Timer pulseTimer = new Timer();
-    private boolean feederOn = false;
         
 
 
@@ -51,12 +48,10 @@ public class FullShootCommand extends Command {
         rotationCommand = new TurretRotationCommand(turret, limelight, drivetrain);
         powerCommand = new TurretPowerCommand(turret, limelight, drivetrain);
 
-        pulseTimer.reset();
     }
 
     @Override
     public void execute() {
-        pulseTimer.start();
         rotationCommand.execute();
         powerCommand.execute();
         System.out.println("turret ready? : " + rotationCommand.rotationReady() + ", Angle Error: " + rotationCommand.angleError);
@@ -66,27 +61,9 @@ public class FullShootCommand extends Command {
 
             hopper.setHopperMotor(0.5);
             intake.setIntakeMotor(0.3);
+            turret.setFeederMotor(0.15);
 
-                double time = pulseTimer.get();
-
-                if (feederOn) {
-                    turret.setFeederMotor(0.5);
-
-                    if (time > 0.1) { // after 0.1 sec turn off
-                        feederOn = false;
-                        pulseTimer.reset();
-                    }
-
-                } else {
-                    turret.setFeederMotor(0);
-                    
-                    if (time > 0.1) { // wait 0.1 sec then turn on again
-                        feederOn = true;
-                        pulseTimer.reset();
-                    }
-                }
-
-            }
+        }
 
 
 
@@ -99,8 +76,6 @@ public class FullShootCommand extends Command {
         hopper.setHopperMotor(0);
         turret.setFeederMotor(0);
         intake.setIntakeMotor(0);
-        pulseTimer.stop();
-        pulseTimer.reset();
     }
 
     @Override

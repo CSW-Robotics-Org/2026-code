@@ -149,7 +149,7 @@ public class RobotContainer {
             NamedCommands.registerCommand("RotateForever", new InstantCommand(()->m_turret.setRotationMotor(-0.15)).repeatedly());
 
             // Named command for shooting
-            //NamedCommands.registerCommand("Stop", new InstantCommand(()->m_turret.setRotationMotor(0.0)));
+            NamedCommands.registerCommand("Stop", new InstantCommand(()->m_turret.setRotationMotor(0.0)));
 
             // named command for turret tracking
             NamedCommands.registerCommand("TurretTrack", TurretAngleCommand);
@@ -218,7 +218,7 @@ public class RobotContainer {
             // (A) Button -> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 2)
                 .onTrue( new SequentialCommandGroup(
-                    new InstantCommand(()->m_turret.setFeederMotor(0.5)),
+                    new InstantCommand(()->m_turret.setFeederMotor(0.15)),
                     new InstantCommand(()->m_hopper.setHopperMotor(0.5)
                     )))
                 .onFalse(new SequentialCommandGroup(

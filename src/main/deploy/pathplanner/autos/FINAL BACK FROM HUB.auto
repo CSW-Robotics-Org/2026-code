@@ -11,34 +11,28 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "RotateForeverRight"
+                  "name": "RotateForever"
                 }
               },
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 0.17
+                  "waitTime": 0.25
                 }
               }
             ]
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "Bottom to HPS"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 5.0
+            "name": "Stop"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "HPS to mid"
+            "pathName": "Back from hub"
           }
         },
         {
@@ -54,7 +48,7 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 4.0
+                  "waitTime": 20.0
                 }
               }
             ]

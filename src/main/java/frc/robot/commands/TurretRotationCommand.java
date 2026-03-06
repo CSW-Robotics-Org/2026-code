@@ -66,7 +66,7 @@ public class TurretRotationCommand extends Command {
         double hubX = tagPos.getX();
         double hubZ = tagPos.getZ();
 
-        angleError = limelight.targetPoseRobotSpace[0]-0.08;
+        angleError = limelight.targetPoseRobotSpace[0];
 
         // We want angleError -> 0
         double output = -turretPID.calculate(angleError, 0);
