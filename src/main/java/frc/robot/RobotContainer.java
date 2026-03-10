@@ -148,6 +148,12 @@ public class RobotContainer {
             // rotate forever
             NamedCommands.registerCommand("RotateForever", new InstantCommand(()->m_turret.setRotationMotor(-0.15)).repeatedly());
 
+            NamedCommands.registerCommand("FeederBackward", new InstantCommand(()->m_turret.setFeederMotor(-0.5)).repeatedly());
+
+            
+            // Named command for shooting
+            NamedCommands.registerCommand("StopFeeder", new InstantCommand(()->m_turret.setFeederMotor(0.0)));
+
             // Named command for shooting
             NamedCommands.registerCommand("Stop", new InstantCommand(()->m_turret.setRotationMotor(0.0)));
 
@@ -176,7 +182,7 @@ public class RobotContainer {
             new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(()-> drivetrain.seedFieldCentric()));
             
             // Theoretically applies the break works great in the sim
-            new JoystickButton(r_joystick,5).whileTrue(drivetrain.applyRequest(() -> brake));
+            new JoystickButton(r_joystick,1).whileTrue(drivetrain.applyRequest(() -> brake));
 
             // robot rel
             new JoystickButton(r_joystick,4).whileTrue(drivetrain.applyRequest(()-> 
@@ -187,23 +193,23 @@ public class RobotContainer {
             
             ));
 
-            // rotation joystick button 3 -> bot shimmy
-            new JoystickButton(r_joystick, 3).onTrue(new SequentialCommandGroup(
-                new InstantCommand(()-> drivetrain.applyRequest(()-> 
-                    new SwerveRequest.RobotCentric()
-                        .withVelocityX(0) // Drive forward with negative Y (forward)
-                        .withVelocityY(0.7)
-                        .withRotationalRate(0) // Drive left with negative X (left)
-                )),
-                Commands.waitSeconds(0.1),
-                new InstantCommand(()-> drivetrain.applyRequest(()-> 
-                    new SwerveRequest.RobotCentric()
-                        .withVelocityX(0) // Drive forward with negative Y (forward)
-                        .withVelocityY(-0.7)
-                        .withRotationalRate(0) // Drive left with negative X (left)
-                )),
-                Commands.waitSeconds(0.1))
-            );
+            // // rotation joystick button 3 -> bot shimmy
+            // new JoystickButton(r_joystick, 3).onTrue(new SequentialCommandGroup(
+            //     new InstantCommand(()-> drivetrain.applyRequest(()-> 
+            //         new SwerveRequest.RobotCentric()
+            //             .withVelocityX(0) // Drive forward with negative Y (forward)
+            //             .withVelocityY(0.7)
+            //             .withRotationalRate(0) // Drive left with negative X (left)
+            //     )),
+            //     Commands.waitSeconds(0.1),
+            //     new InstantCommand(()-> drivetrain.applyRequest(()-> 
+            //         new SwerveRequest.RobotCentric()
+            //             .withVelocityX(0) // Drive forward with negative Y (forward)
+            //             .withVelocityY(-0.7)
+            //             .withRotationalRate(0) // Drive left with negative X (left)
+            //     )),
+            //     Commands.waitSeconds(0.1))
+            // );
 
 
 
@@ -235,19 +241,27 @@ public class RobotContainer {
             
             // Left trigger -> spits out fuel from intake
             new JoystickButton(m_operator,7)
-                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)))
+                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.6)))
                 .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
 
-             // Left trigger -> spits out fuel from intake
-            new JoystickButton(m_operator,8)
-                .onTrue(new InstantCommand(()-> m_turret.setFeederMotor(-0.3)))
+                
+            // back button -> reverse feeder
+            new JoystickButton(m_operator,9)
+                .onTrue(new InstantCommand(()-> m_turret.setFeederMotor(-0.75)))
                 .onFalse(new InstantCommand(()-> m_turret.setFeederMotor(0)));
+
+            // right trigger -> manual turret and shooter 
+                new JoystickButton(m_operator, 8)
+                .whileTrue(new InstantCommand(()-> m_turret.setShooterMotor(MathUtil.clamp(-m_operator.getLeftY(),0,1))).repeatedly())
+                .whileTrue(new InstantCommand(()-> m_turret.setRotationMotor(MathUtil.clamp(m_operator.getLeftX()/10, -0.15, 0.15))).repeatedly())
+                .onFalse(new InstantCommand(()-> m_turret.setShooterMotor(0)))
+                .onFalse(new InstantCommand(()-> m_turret.setRotationMotor(0)));
             
             
             // left bumper-> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 5)
                 .onTrue( new SequentialCommandGroup(
-                    new InstantCommand(()->m_intake.setIntakeMotor(0.3)),
+                    new InstantCommand(()->m_intake.setIntakeMotor(0.5)),
                     new InstantCommand(()->m_hopper.setHopperMotor(0.5)
                     )))
                 .onFalse(new SequentialCommandGroup(

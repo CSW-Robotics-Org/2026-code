@@ -63,7 +63,7 @@ public class TurretPowerCommand extends Command {
         }
 
         // Quadratic formula for shooter power
-        double shooterPow = 0.475 + 0.016 * targetDistance + 0.014 * Math.pow(targetDistance, 2);
+        double shooterPow = 0.44 + 0.016 * targetDistance + 0.014 * Math.pow(targetDistance, 2);
         shooterPow = MathUtil.clamp(shooterPow,-1,1);
 
         if (limelight.tv == 0){

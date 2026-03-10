@@ -88,7 +88,7 @@ public class TurretRotationCommand extends Command {
      */
     public boolean rotationReady(){
         return Math.abs(angleError)
-        < 0.12;
+        < 0.25;
     }
 
     @Override

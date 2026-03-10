@@ -5,6 +5,25 @@
     "data": {
       "commands": [
         {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "RotateForever"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.31
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "nothing"
