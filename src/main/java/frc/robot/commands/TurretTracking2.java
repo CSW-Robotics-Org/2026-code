@@ -8,80 +8,67 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.LimeLight;
 import frc.robot.subsystems.Turret;
 
-public class TurretTracking extends Command{
+ 
+
+public class TurretTracking2 extends Command{
     
     // Hub position (meters)
     private static final double HUB_X = 8.27;   // lateral
     private static final double HUB_Z = 4.03;   // forward
 
     // creates a pid for the turret
-    private static final PIDController turretPID = new PIDController(0.02, 0, 0);
+    private static final PIDController turretPID = new PIDController(0.004, 0, 0.000001);
 
     /**
      * returns the speeed of the turret to point at the center of the hub
      * @param limelight
-     * @param drivetrain
      * @param turret
      * @return speed (percent %)
      */
-    public static double TurretLineup(LimeLight limelight, CommandSwerveDrivetrain drivetrain,Turret turret) {
+    public static void TurretLineup(LimeLight limelight,Turret turret) {
 
-        Translation3d targetPos;
+        Translation2d targetPos;
 
         // if we cant see a tag dont move
         if (limelight.tv == 0){
-            return 0;
+            turret.setRotationMotor(0);
         }
 
-        // Use Limelight
-        Pose3d tagPos = new Pose3d(
-            limelight.targetPoseRobotSpace[0],
-            limelight.targetPoseRobotSpace[1],
-            limelight.targetPoseRobotSpace[2],
-            new Rotation3d(
-                Math.toRadians(limelight.targetPoseRobotSpace[3]),
-                Math.toRadians(limelight.targetPoseRobotSpace[4]),
-                Math.toRadians(limelight.targetPoseRobotSpace[5])
-            )
-        );
+        //double tx = LimelightHelpers.getTX("limelight");
 
-        Transform3d tagToBoxCenter = new Transform3d(
-            // Translation3d(-0.5969, 0, 0),
-            new Translation3d(-0.5969,0,0),
-            // new Translation3d(-0.5969,0,0),
-            new Rotation3d()
-        );
-
-        Pose3d boxCenterPos = tagPos.transformBy(tagToBoxCenter);
-        targetPos = boxCenterPos.getTranslation();
-
-        System.out.println("Initial X" + tagPos.getX());
-        System.out.println("Initial y" + tagPos.getY());
-        System.out.println("Initial z" + tagPos.getZ());
+        double ty = limelight.ty;
+        // double targetX = limelight.robotPosTargetSpace[0];
+        // double targetZ = limelight.robotPosTargetSpace[1];
+        double PIDoutput = turretPID.calculate(ty, 0);
         
-        System.out.println("transformed X" + boxCenterPos.getX());
-        System.out.println("transformed y" + boxCenterPos.getY());
-        System.out.println("transformed z" + boxCenterPos.getZ());
+        System.out.println("ty: " + ty);
+        System.out.println("PIDoutput: " + PIDoutput);
+        turret.setRotationMotor(PIDoutput);
+        
 
-        double angleError = Math.toDegrees(
-            Math.atan2(targetPos.getX(), targetPos.getY())
-        );
 
-        // We want angleError -> 0
-        double output = turretPID.calculate(angleError, 0);
-        // clamp output speed
-        output = MathUtil.clamp(output, -0.35, 0.35);
 
-        System.out.println("angle error" + angleError);
-        System.out.println("output" + output);
-        return output;
+        // // Use Limelight
+        // Pose3d tagPos = new Pose3d(
+        //     limelight.robotPosTargetSpace[0],
+        //     limelight.robotPosTargetSpace[1],
+        //     limelight.robotPosTargetSpace[2],
+        //     new Rotation3d(
+        //         Math.toRadians(limelight.robotPosTargetSpace[3]),
+        //         Math.toRadians(limelight.robotPosTargetSpace[4]),
+        //         Math.toRadians(limelight.robotPosTargetSpace[5])
+        //     )
+        // );
+
 }
 
     /**

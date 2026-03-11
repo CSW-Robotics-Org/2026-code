@@ -85,7 +85,8 @@ public class Turret extends SubsystemBase{
     public void setRotationMotor(double speed) {
         // speed = MathUtil.clamp(speed, -1, 1);
         // rotTargetRPM = speed*5676;
-        rot_motor.set(speed);
+         rot_motor.set(speed);
+       //t_motor.setVoltage(6);
     }
 
     /**

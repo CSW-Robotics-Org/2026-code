@@ -42,6 +42,7 @@ import frc.robot.commands.FullShootCommand;
 import frc.robot.commands.TurretPowerCommand;
 import frc.robot.commands.TurretRotationCommand;
 import frc.robot.commands.TurretTracking;
+import frc.robot.commands.TurretTracking2;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Hopper;
@@ -219,7 +220,10 @@ public class RobotContainer {
             new JoystickButton(m_operator,4).whileTrue(ShooterPowerCommand);
 
             // (B) Button -> runs the turret rotation command
-            new JoystickButton(m_operator,3).whileTrue(TurretAngleCommand);
+            //new JoystickButton(m_operator,3).whileTrue(new InstantCommand(() -> m_turret.setRotationMotor(TurretTracking.TurretLineup(limelight, drivetrain, m_turret))).repeatedly());
+
+            new JoystickButton(m_operator, 3).whileTrue(new InstantCommand(()-> TurretTracking2.TurretLineup(limelight, m_turret)).repeatedly());
+            //new JoystickButton(m_operator,3).whileTrue(TurretAngleCommand);
             
             // (A) Button -> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 2)
@@ -261,9 +265,9 @@ public class RobotContainer {
             // left bumper-> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 5)
                 .onTrue( new SequentialCommandGroup(
-                    new InstantCommand(()->m_intake.setIntakeMotor(0.5)),
-                    new InstantCommand(()->m_hopper.setHopperMotor(0.5)
-                    )))
+                    new InstantCommand(()->m_intake.setIntakeMotor(0.5))
+                    //new InstantCommand(()->m_hopper.setHopperMotor(0.5))
+                    ))
                 .onFalse(new SequentialCommandGroup(
                     new InstantCommand(()->m_intake.setIntakeMotor(0)),
                     new InstantCommand(()->m_hopper.setHopperMotor(0))

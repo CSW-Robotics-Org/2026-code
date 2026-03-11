@@ -52,7 +52,7 @@ public class FullShootCommand extends Command {
 
     @Override
     public void execute() {
-        rotationCommand.execute();
+        TurretTracking2.TurretLineup(limelight, turret);
         powerCommand.execute();
         System.out.println("turret ready? : " + rotationCommand.rotationReady() + ", Angle Error: " + rotationCommand.angleError);
         System.out.println("shooter ready? : " + powerCommand.readyToShoot() + ", CurrentRPM, targetRPM: " + turret.s_encoder.getVelocity() + ", " + turret.targetRPM);
@@ -60,7 +60,7 @@ public class FullShootCommand extends Command {
         if (rotationCommand.rotationReady() && powerCommand.readyToShoot()) {
 
             hopper.setHopperMotor(0.5);
-            intake.setIntakeMotor(0.3);
+            //intake.setIntakeMotor(0.3);
             turret.setFeederMotor(0.15);
 
         }
