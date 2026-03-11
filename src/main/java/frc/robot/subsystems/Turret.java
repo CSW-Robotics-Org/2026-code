@@ -118,7 +118,7 @@ public class Turret extends SubsystemBase{
             return false;
         }
 
-        double tolerance = 100; // RPM tolerance (tune this)
+        double tolerance = 25; // RPM tolerance (tune this)
         return Math.abs(currentRPM - targetRPM) < tolerance;
     }
 
@@ -149,14 +149,6 @@ public class Turret extends SubsystemBase{
         double voltage = feederPIDOutput + feederffOutput;
         voltage = MathUtil.clamp(voltage, -12, 12);
         feed_motor.setVoltage(voltage);
-
-        // // turret loop to hold speed
-        // double rotCurrentRPM = rot_encoder.getVelocity();
-        // double rotPIDOutput = rotPID.calculate(rotCurrentRPM,rotTargetRPM);
-        // double rotffOutput = rotFF.calculate(rotTargetRPM);
-        // double rotVoltage = rotPIDOutput + rotffOutput;
-        // rotVoltage = MathUtil.clamp(rotVoltage, -12, 12);
-        // rot_motor.setVoltage(rotVoltage);
 
     }
     

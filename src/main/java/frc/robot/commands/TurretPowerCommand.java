@@ -15,19 +15,8 @@ public class TurretPowerCommand extends Command {
 
     private final Turret turret;
     private final LimeLight limelight;
-    private final CommandSwerveDrivetrain drivetrain;
     public double shooterPowerOffset = 0;
-
-    // Hub position (meters)
-    private final double HUB_X = 8.27;   // lateral
-    private final double HUB_Z = 4.03;   // forward
-    private final double HUB_TAG_OFFSET_Z = -0.5969;
-
-    public Translation3d targetPos;
-    public double targetDistance = 0;
-    public Pose3d boxCenterPos;
-    public Pose3d tagPos;
-    public double hypotenuse;
+    public double prevShooterPow;
 
     /**
      * Constructor of the command. Sets the shooter power based off of pos data.
@@ -35,40 +24,46 @@ public class TurretPowerCommand extends Command {
      * @param limelight (limelight on the turret)
      * @param drivetrain (drivetrain for pos estimation)
      */
-    public TurretPowerCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain) {
+    public TurretPowerCommand(Turret turret, LimeLight limelight) {
         this.turret = turret;
         this.limelight = limelight;
-        this.drivetrain = drivetrain;
     }
 
     @Override
     public void execute() {
 
-        if (limelight.tv == 1) {
-            tagPos = new Pose3d(
-                limelight.targetPoseRobotSpace[0],
-                limelight.targetPoseRobotSpace[1],
-                limelight.targetPoseRobotSpace[2],
-                new Rotation3d(
-                    Math.toRadians(limelight.targetPoseRobotSpace[3]),
-                    Math.toRadians(limelight.targetPoseRobotSpace[4]),
-                    Math.toRadians(limelight.targetPoseRobotSpace[5])
-                )
-            );
+        double[] raw = limelight.getRobotPoseTargetSpace();
 
-            double hubX = tagPos.getX();
-            double hubZ = tagPos.getZ();
+        Pose3d botInTargetSpace = new Pose3d(
+            new Translation3d(raw[0], raw[1], raw[2]),
+            new Rotation3d(
+                Math.toRadians(raw[3]),  // roll
+                Math.toRadians(raw[4]),  // pitch
+                Math.toRadians(raw[5])   // yaw
+            )
+        );
 
-            targetDistance = Math.hypot(hubX, hubZ);
-        }
+        // hub center relative to the tag
+        Translation3d goalInTargetSpace = new Translation3d(0, 0, -0.6);
+
+        // vector from robot to goal
+        Translation3d robotToGoal = goalInTargetSpace.minus(botInTargetSpace.getTranslation());
+
+        double targetDistance = Math.hypot(robotToGoal.getX(), robotToGoal.getZ());
 
         // Quadratic formula for shooter power
         double shooterPow = 0.44 + 0.016 * targetDistance + 0.014 * Math.pow(targetDistance, 2);
+
+        if (limelight.hasTarget()){
+            prevShooterPow = shooterPow;
+        }
+        
+        if (!limelight.hasTarget()){
+            shooterPow = prevShooterPow;
+        }
+        
         shooterPow = MathUtil.clamp(shooterPow,-1,1);
 
-        if (limelight.tv == 0){
-            shooterPow = 0;
-        }
         turret.setShooterMotor(shooterPow + shooterPowerOffset);
     }
 
