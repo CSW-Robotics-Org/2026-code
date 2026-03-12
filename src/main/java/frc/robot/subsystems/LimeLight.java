@@ -1,96 +1,116 @@
-
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.Timer;
+import frc.robot.LimelightHelpers;
 
+/**
+ * Subsystem wrapper for interacting with a Limelight camera.
+ * Provides helper methods for changing pipelines and retrieving
+ * vision data such as robot pose and target pose.
+ */
 public class LimeLight extends SubsystemBase {
 
-    private String m_network_table_key = "limelight";
-
-    // offsets for the camera
-    public double xoffset;
-    public double zoffset;
-    public double rotoffset;
-    private CommandSwerveDrivetrain drivetrain;
-    private Turret m_turret;
-
-    // testing commit protection
-    // surely this works the second time
+    /** Name of the Limelight as defined in the Limelight web interface */
+    private String limelightName;
 
     /**
-     * Constructor
-     * @param network_table_key (networktable key of the limelight)
-     * @param xoffset (x offset on the robot, left and right plane)
-     * @param zoffset (z offset on the robot, forward and backward plane)
-     * @param rotoffset (yaw offset from the robot)
-     * @param drive (drivetrain for possition estimation)
-     * @param turret (turret for possition estimation)
+     * Creates a new Limelight subsystem.
+     *
+     * @param name The network name of the Limelight (ex: "limelight")
      */
-    public LimeLight(String network_table_key,double xoffset, double zoffset, double rotoffset, CommandSwerveDrivetrain drive, Turret turret) {
-        // sets the key for the limelight aka the name 
-        m_network_table_key = network_table_key;
-
-        // stores the offsets
-        this.xoffset = xoffset;
-        this.zoffset = zoffset;
-        this.rotoffset = rotoffset;
-        drivetrain = drive;
-        m_turret = turret;
-
+    public LimeLight(String name) {
+        this.limelightName = name;
     }
 
-    // 3d AT data
-    public double tv = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("tv").getDouble(0);
-
-    public double tx = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("tx").getDouble(0);
-    
-    public double ty = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("ty").getDouble(0);
-
-    public double[] targetPosCameraSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("targetpose_cameraspace").getDoubleArray(new double[6]);
-
-    public double[] botPos = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("botpose").getDoubleArray(new double[6]);
-
-    public double[] targetPoseRobotSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("targetpose_robotspace").getDoubleArray(new double[6]);
-
-
-    public double[] robotPosTargetSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("botpose_targetspace").getDoubleArray(new double[6]);
-
+    /**
+     * Sets the Limelight pipeline to the AprilTag detection pipeline.
+     * This pipeline should be configured in the Limelight dashboard.
+     */
     public void setAprilTag() {
-        NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("pipeline").setNumber(0);
+        LimelightHelpers.setPipelineIndex(limelightName, 0);
     }
 
+    /**
+     * Sets the Limelight pipeline to the reflective target pipeline.
+     * Useful for detecting retroreflective tape targets.
+     */
     public void setReflective() {
-        NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("pipeline").setNumber(1);
+        LimelightHelpers.setPipelineIndex(limelightName, 1);
     }
 
+    /**
+     * Checks whether the Limelight currently detects a valid target.
+     *
+     * @return true if a target is visible, false otherwise
+     */
+    public boolean hasTarget() {
+        return LimelightHelpers.getTV(limelightName);
+    }
 
+    /**
+     * Gets the robot's estimated field pose from the Limelight.
+     * This is typically used for vision-based pose estimation.
+     *
+     * The returned array contains:
+     * [X, Y, Z, roll, pitch, yaw]
+     *
+     * @return array containing the robot pose in field coordinates
+     */
+    public double[] getBotPose() {
+        return LimelightHelpers.getBotPose(limelightName);
+    }
+
+    /**
+     * Gets the pose of the detected target relative to the camera.
+     *
+     * The returned array contains:
+     * [X, Y, Z, roll, pitch, yaw]
+     *
+     * @return array representing the target pose in camera space
+     */
+    public double[] getTargetPoseCameraSpace() {
+        return LimelightHelpers.getTargetPose_CameraSpace(limelightName);
+    }
+
+    /**
+     * Gets the pose of the detected target relative to the robot.
+     *
+     * The returned array contains:
+     * [X, Y, Z, roll, pitch, yaw]
+     *
+     * @return array representing the target pose in robot space
+     */
+    public double[] getTargetPoseRobotSpace() {
+        return LimelightHelpers.getTargetPose_RobotSpace(limelightName);
+    }
+
+    /**
+     * Gets the robot's pose relative to the detected target.
+     * This is often used for calculating distance and angle to a target.
+     *
+     * The returned array contains:
+     * [X, Y, Z, roll, pitch, yaw]
+     *
+     * @return array representing the robot pose in target space
+     */
+    public double[] getRobotPoseTargetSpace() {
+        return LimelightHelpers.getBotPose_TargetSpace(limelightName);
+    }
+
+    /**
+     * Runs every robot loop (~20ms).
+     * Sends useful Limelight data to SmartDashboard for debugging.
+     */
     @Override
     public void periodic() {
-
-        targetPosCameraSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("targetpose_cameraspace").getDoubleArray(new double[6]);
-
-        botPos = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("botpose").getDoubleArray(new double[6]);
-
-        targetPoseRobotSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("targetpose_robotspace").getDoubleArray(new double[6]);
-
-        robotPosTargetSpace = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("botpose_targetspace").getDoubleArray(new double[6]);
-
-        tv = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("tv").getDouble(0);
-
-        tx = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("tx").getDouble(0);
-        
-        ty = NetworkTableInstance.getDefault().getTable(m_network_table_key).getEntry("ty").getDouble(0);
-
-        // System.out.println("X: " + targetPoseRobotSpace[0] + ", Y: " + targetPoseRobotSpace[1] + ", TV: " + tv);
-        
+        SmartDashboard.putBoolean("LL Target", hasTarget());
     }
 
+    /**
+     * Runs periodically during simulation.
+     * Currently unused.
+     */
     @Override
     public void simulationPeriodic() {}
 }

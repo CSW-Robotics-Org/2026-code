@@ -119,7 +119,7 @@ public class Turret extends SubsystemBase{
             return false;
         }
 
-        double tolerance = 100; // RPM tolerance (tune this)
+        double tolerance = 25; // RPM tolerance (tune this)
         return Math.abs(currentRPM - targetRPM) < tolerance;
     }
 

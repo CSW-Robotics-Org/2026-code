@@ -14,22 +14,10 @@ public class TurretRotationCommand extends Command {
 
     private final Turret turret;
     private final LimeLight limelight;
-    private final CommandSwerveDrivetrain drivetrain;
-
-    // Hub position (meters)
-    private final double HUB_X = 8.27;   // lateral
-    private final double HUB_Z = 4.03;   // forward
-    private final double HUB_TAG_OFFSET_Z = -0.5969;
+    public double error;
 
     // creates a pid for the turret
     private static final PIDController turretPID = new PIDController(0.11, .0075, 0);
-
-    public Translation3d targetPos;
-    public Pose3d tagPos;
-    public Pose3d boxCenterPos;
-    public double hypotenuse;
-    public double angleError;
-
 
     /**
      * Constructor of the command. Sets the turret target angle based on pos data.
@@ -37,47 +25,36 @@ public class TurretRotationCommand extends Command {
      * @param limelight (limelight on the turret)
      * @param drivetrain (drivetrain for pos estimation)
      */
-    public TurretRotationCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain) {
+    public TurretRotationCommand(Turret turret, LimeLight limelight) {
         this.turret = turret;
         this.limelight = limelight;
-        this.drivetrain = drivetrain;
     }
 
     @Override
     public void execute() {
 
-        // if we cant see a tag dont move
-        if (limelight.tv == 0){
-            turret.setRotationMotor(0);
-        }
+        // gets the raw limelight data
+        double[] raw = limelight.getTargetPoseRobotSpace();
 
-        // Use Limelight for pos 3s
-        tagPos = new Pose3d(
-            limelight.targetPoseRobotSpace[0],
-            limelight.targetPoseRobotSpace[1],
-            limelight.targetPoseRobotSpace[2],
-            new Rotation3d(
-                Math.toRadians(limelight.targetPoseRobotSpace[3]),
-                Math.toRadians(limelight.targetPoseRobotSpace[4]),
-                Math.toRadians(limelight.targetPoseRobotSpace[5])
-            )
+        // puts it into a pose 3d
+        Pose3d hubPos = new Pose3d(
+            new Translation3d(raw[0], raw[1], raw[2]),
+            new Rotation3d(raw[3],raw[4],raw[5])
         );
 
-        double hubX = tagPos.getX();
-        double hubZ = tagPos.getZ();
-
-        angleError = limelight.targetPoseRobotSpace[0];
+        error = hubPos.getX();
 
         //System.out.println("Hello world");
         // We want angleError -> 0
-        double output = -turretPID.calculate(angleError, 0);
+        double output = -turretPID.calculate(error, 0);
 
-        if (limelight.tv == 0){
+        // if we cant see an april tag dont move
+        if (!limelight.hasTarget()){
             output = 0;
         }
         
         System.out.println("output: " + output);
-        System.out.println("Angle Error: " + angleError);
+        System.out.println("Angle Error: " + error);
 
         // clamp output speed
         output = MathUtil.clamp(output, -0.35, 0.35);
@@ -90,7 +67,7 @@ public class TurretRotationCommand extends Command {
      * @return true if turret is lined up
      */
     public boolean rotationReady(){
-        return Math.abs(angleError)
+        return Math.abs(error)
         < 0.25;
     }
 

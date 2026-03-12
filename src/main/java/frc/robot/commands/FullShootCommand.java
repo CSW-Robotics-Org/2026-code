@@ -20,15 +20,12 @@ public class FullShootCommand extends Command {
 
     private final Turret turret;
     private final LimeLight limelight;
-    private final CommandSwerveDrivetrain drivetrain;
     private final Hopper hopper;
     private final Intake intake;
     public double shooterPowerOffset = 0;
 
     private final TurretRotationCommand rotationCommand;
     private final TurretPowerCommand powerCommand;
-        
-
 
 
     /**
@@ -38,15 +35,14 @@ public class FullShootCommand extends Command {
      * @param drivetrain (drivetrain for pos estimation)
      * @param hopper (hopper to feed balls)
      */
-    public FullShootCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain,Hopper m_hopper, Intake m_intake) {
+    public FullShootCommand(Turret turret, LimeLight limelight,Hopper m_hopper, Intake m_intake) {
         this.turret = turret;
         this.limelight = limelight;
-        this.drivetrain = drivetrain;
         this.hopper = m_hopper;
         this.intake = m_intake;
 
-        rotationCommand = new TurretRotationCommand(turret, limelight, drivetrain);
-        powerCommand = new TurretPowerCommand(turret, limelight, drivetrain);
+        rotationCommand = new TurretRotationCommand(turret, limelight);
+        powerCommand = new TurretPowerCommand(turret, limelight);
 
     }
 
@@ -57,12 +53,18 @@ public class FullShootCommand extends Command {
         System.out.println("turret ready? : " + rotationCommand.rotationReady() + ", Angle Error: " + rotationCommand.angleError);
         System.out.println("shooter ready? : " + powerCommand.readyToShoot() + ", CurrentRPM, targetRPM: " + turret.s_encoder.getVelocity() + ", " + turret.targetRPM);
 
+        // this will run if we all al ready to shoot and starts feeding balls
         if (rotationCommand.rotationReady() && powerCommand.readyToShoot()) {
 
             hopper.setHopperMotor(0.5);
-            //intake.setIntakeMotor(0.3);
+            intake.setIntakeMotor(0.3);
             turret.setFeederMotor(0.15);
 
+        }
+
+        // if the shooter isnt ready to shoot stop the feeder
+        if (!powerCommand.readyToShoot() || !rotationCommand.rotationReady()){
+            turret.setFeederMotor(0);
         }
 
 

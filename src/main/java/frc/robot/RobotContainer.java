@@ -37,11 +37,9 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.DriveTracking;
 import frc.robot.commands.FullShootCommand;
 import frc.robot.commands.TurretPowerCommand;
 import frc.robot.commands.TurretRotationCommand;
-import frc.robot.commands.TurretTracking;
 import frc.robot.commands.TurretTracking2;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -83,10 +81,10 @@ public class RobotContainer {
     
     // creates our limelights
     public final Turret m_turret = new Turret(8, 10, 15);
-    public final LimeLight limelight = new LimeLight("limelight-front",0,0,0,drivetrain,m_turret);
+    public final LimeLight limelight = new LimeLight("limelight-front");
     
-    public TurretPowerCommand ShooterPowerCommand = new TurretPowerCommand(m_turret,limelight,drivetrain);
-    public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight,drivetrain);
+    public TurretPowerCommand ShooterPowerCommand = new TurretPowerCommand(m_turret,limelight);
+    public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight);
     public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,drivetrain,m_hopper,m_intake);
 
     public RobotContainer() {

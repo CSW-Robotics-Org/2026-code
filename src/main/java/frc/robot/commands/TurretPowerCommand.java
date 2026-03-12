@@ -15,65 +15,46 @@ public class TurretPowerCommand extends Command {
 
     private final Turret turret;
     private final LimeLight limelight;
-    private final CommandSwerveDrivetrain drivetrain;
     public double shooterPowerOffset = 0;
-
-    // Hub position (meters)
-    private final double HUB_X = 8.27;   // lateral
-    private final double HUB_Z = 4.03;   // forward
-    private final double HUB_TAG_OFFSET_Z = -0.5969;
-
-    public Translation3d targetPos;
-    public double targetDistance = 0;
-    public Pose3d boxCenterPos;
-    public Pose3d tagPos;
-    public double hypotenuse;
-
     /**
      * Constructor of the command. Sets the shooter power based off of pos data.
      * @param turret (turret)
      * @param limelight (limelight on the turret)
-     * @param drivetrain (drivetrain for pos estimation)
      */
-    public TurretPowerCommand(Turret turret, LimeLight limelight, CommandSwerveDrivetrain drivetrain) {
+    public TurretPowerCommand(Turret turret, LimeLight limelight) {
         this.turret = turret;
         this.limelight = limelight;
-        this.drivetrain = drivetrain;
     }
 
     @Override
     public void execute() {
 
-        if (limelight.tv == 1) {
-            tagPos = new Pose3d(
-                limelight.targetPoseRobotSpace[0],
-                limelight.targetPoseRobotSpace[1],
-                limelight.targetPoseRobotSpace[2],
-                new Rotation3d(
-                    Math.toRadians(limelight.targetPoseRobotSpace[3]),
-                    Math.toRadians(limelight.targetPoseRobotSpace[4]),
-                    Math.toRadians(limelight.targetPoseRobotSpace[5])
-                )
-            );
+        // gets the raw limelight data
+        double[] raw = limelight.getTargetPoseRobotSpace();
 
-            double hubX = tagPos.getX()-0.2413;
-            double hubZ = tagPos.getZ();
+        // puts it into a pose 3d
+        Pose3d hubPos = new Pose3d(
+            new Translation3d(raw[0], raw[1], raw[2]),
+            new Rotation3d(raw[3],raw[4],raw[5])
+        );
 
-            targetDistance = Math.hypot(hubX, hubZ);
-        }
-
+        // finds the hypotenuse
+        double targetDistance = Math.hypot(hubPos.getX(), hubPos.getZ());
+        
         // Quadratic formula for shooter power
-        //double shooterPow = 0.44 + 0.016 * targetDistance + 0.014 * Math.pow(targetDistance, 2);
         double shooterPow =0.46 + 0.006 * (targetDistance) + 0.009 * Math.pow(targetDistance, 2);
         
+        // clamps the shooter power
         shooterPow = MathUtil.clamp(shooterPow,-1,1);
 
-        if (limelight.tv == 0){
+        // if the limelight has no target set the shooter power to 0
+        if (!limelight.hasTarget()){
             shooterPow = 0;
         }
+
+        // sets the shooter motor
         turret.setShooterMotor(shooterPow + shooterPowerOffset);
-        System.out.println("Power = " + (shooterPow+shooterPowerOffset));
-        System.out.println("TargetDistance = " + targetDistance);
+       
 
     }
 
