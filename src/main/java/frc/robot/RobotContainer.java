@@ -85,7 +85,7 @@ public class RobotContainer {
     
     public TurretPowerCommand ShooterPowerCommand = new TurretPowerCommand(m_turret,limelight);
     public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight);
-    public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,drivetrain,m_hopper,m_intake);
+    public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,m_hopper,m_intake);
 
     public RobotContainer() {
         configureBindings();
