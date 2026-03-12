@@ -45,8 +45,8 @@ public class FullShootCommand extends Command {
         this.hopper = m_hopper;
         this.intake = m_intake;
 
-        rotationCommand = new TurretRotationCommand(turret, limelight);
-        powerCommand = new TurretPowerCommand(turret, limelight);
+        rotationCommand = new TurretRotationCommand(turret, limelight, drivetrain);
+        powerCommand = new TurretPowerCommand(turret, limelight, drivetrain);
 
     }
 
@@ -63,10 +63,6 @@ public class FullShootCommand extends Command {
             intake.setIntakeMotor(0.3);
             turret.setFeederMotor(0.15);
 
-        }
-
-        if (!powerCommand.readyToShoot()){
-            turret.setFeederMotor(0);
         }
 
 
