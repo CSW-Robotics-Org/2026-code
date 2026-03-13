@@ -39,7 +39,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.FullShootCommand;
 import frc.robot.commands.TurretPowerCommand;
-import frc.robot.commands.TurretRotationCommand;
+//import frc.robot.commands.TurretRotationCommand;
 import frc.robot.commands.TurretTracking2;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -84,7 +84,8 @@ public class RobotContainer {
     public final LimeLight limelight = new LimeLight("limelight-front");
     
     public TurretPowerCommand ShooterPowerCommand = new TurretPowerCommand(m_turret,limelight);
-    public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight);
+    public TurretTracking2 TurretTrackerCommand = new TurretTracking2(m_turret, limelight);
+    //public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight);
     public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,m_hopper,m_intake);
 
     public RobotContainer() {
@@ -157,7 +158,7 @@ public class RobotContainer {
             NamedCommands.registerCommand("Stop", new InstantCommand(()->m_turret.setRotationMotor(0.0)));
 
             // named command for turret tracking
-            NamedCommands.registerCommand("TurretTrack", TurretAngleCommand);
+            NamedCommands.registerCommand("TurretTrack", TurretTrackerCommand);
 
             NamedCommands.registerCommand("Intake", new InstantCommand(()-> m_intake.setIntakeMotor(0.3)));
 
@@ -218,9 +219,7 @@ public class RobotContainer {
             new JoystickButton(m_operator,4).whileTrue(ShooterPowerCommand);
 
             // (B) Button -> runs the turret rotation command
-            //new JoystickButton(m_operator,3).whileTrue(new InstantCommand(() -> m_turret.setRotationMotor(TurretTracking.TurretLineup(limelight, drivetrain, m_turret))).repeatedly());
-
-            new JoystickButton(m_operator, 3).whileTrue(new InstantCommand(()-> TurretTracking2.TurretLineup(limelight, m_turret)).repeatedly());
+            new JoystickButton(m_operator, 3).whileTrue(TurretTrackerCommand);
             //new JoystickButton(m_operator,3).whileTrue(TurretAngleCommand);
             
             // (A) Button -> runs the feeder motor and the hopper motor

@@ -24,13 +24,22 @@ public class TurretTracking2 extends Command{
     // creates a pid for the turret
     private static final PIDController turretPID = new PIDController(0.004, 0, 0.000001);
 
+    public double tagError;
+
+    private final Turret turret;
+    private final LimeLight limelight;
+    
     /**
-     * returns the speeed of the turret to point at the center of the hub
-     * @param limelight
-     * @param turret
-     * @return speed (percent %)
+     * Constructor of the command. Sets the turret target angle based on pos data.
+     * @param turret (turret)
+     * @param limelight (limelight on the turret)
      */
-    public static void TurretLineup(LimeLight limelight,Turret turret) {
+    public TurretTracking2(Turret turret, LimeLight limelight) {
+        this.turret = turret;
+        this.limelight = limelight;
+    } 
+
+    public void execute() {
 
         // if we cant see a tag dont move
         if (!limelight.hasTarget()){
@@ -39,16 +48,26 @@ public class TurretTracking2 extends Command{
 
         //double tx = LimelightHelpers.getTX("limelight");
 
-        double ty = LimelightHelpers.getTY("limelight-front");
+        double tagError = LimelightHelpers.getTY("limelight-front");
         // double targetX = limelight.robotPosTargetSpace[0];
         // double targetZ = limelight.robotPosTargetSpace[1];
-        double PIDoutput = turretPID.calculate(ty, 0);
+        double PIDoutput = turretPID.calculate(tagError, 0);
         
-        System.out.println("ty: " + ty);
+        System.out.println("tag error: " + tagError);
         System.out.println("PIDoutput: " + PIDoutput);
         turret.setRotationMotor(PIDoutput);
-        
+    }
 
-}
+    public boolean rotationReady(){
+        return Math.abs(tagError) < 5;
+    }
+
+    public void end(boolean interrupted) {
+        turret.setRotationMotor(0);
+    }
+
+    public boolean isFinished() {
+        return false; // never ends on its own
+    }
 
 }

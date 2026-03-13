@@ -24,8 +24,9 @@ public class FullShootCommand extends Command {
     private final Intake intake;
     public double shooterPowerOffset = 0;
 
-    private final TurretRotationCommand rotationCommand;
+    //private final TurretRotationCommand rotationCommand;
     private final TurretPowerCommand powerCommand;
+    TurretTracking2 turretTracker;
 
 
     /**
@@ -41,31 +42,33 @@ public class FullShootCommand extends Command {
         this.hopper = m_hopper;
         this.intake = m_intake;
 
-        rotationCommand = new TurretRotationCommand(turret, limelight);
+        //rotationCommand = new TurretRotationCommand(turret, limelight);
         powerCommand = new TurretPowerCommand(turret, limelight);
+        turretTracker = new TurretTracking2(turret, limelight);
+
 
     }
 
     @Override
     public void execute() {
-        TurretTracking2.TurretLineup(limelight, turret);
+        turretTracker.execute();
         powerCommand.execute();
-        System.out.println("turret ready? : " + rotationCommand.rotationReady() + ", Angle Error: " + rotationCommand.angleError);
+        System.out.println("turret ready? : " + turretTracker.rotationReady() + ", Angle Error: " + turretTracker.tagError);
         System.out.println("shooter ready? : " + powerCommand.readyToShoot() + ", CurrentRPM, targetRPM: " + turret.s_encoder.getVelocity() + ", " + turret.targetRPM);
 
         // this will run if we all al ready to shoot and starts feeding balls
-        if (rotationCommand.rotationReady() && powerCommand.readyToShoot()) {
+        if (turretTracker.rotationReady() && powerCommand.readyToShoot()) {
 
             hopper.setHopperMotor(0.5);
-            intake.setIntakeMotor(0.3);
+            //intake.setIntakeMotor(0.3);
             turret.setFeederMotor(0.15);
 
         }
 
-        // if the shooter isnt ready to shoot stop the feeder
-        if (!powerCommand.readyToShoot() || !rotationCommand.rotationReady()){
-            turret.setFeederMotor(0);
-        }
+        // //if the shooter isnt ready to shoot stop the feeder
+        // if (!powerCommand.readyToShoot() || !turretTracker.rotationReady()){
+        //     turret.setFeederMotor(0);
+        // }
 
 
 
@@ -73,7 +76,7 @@ public class FullShootCommand extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        rotationCommand.end(interrupted);
+        turretTracker.end(interrupted);
         powerCommand.end(interrupted);
         hopper.setHopperMotor(0);
         turret.setFeederMotor(0);
