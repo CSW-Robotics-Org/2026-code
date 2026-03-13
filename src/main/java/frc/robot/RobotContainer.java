@@ -242,7 +242,7 @@ public class RobotContainer {
             
             // Left trigger -> spits out fuel from intake
             new JoystickButton(m_operator,7)
-                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.6)))
+                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)))
                 .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
 
                 
@@ -262,7 +262,7 @@ public class RobotContainer {
             // left bumper-> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 5)
                 .onTrue( new SequentialCommandGroup(
-                    new InstantCommand(()->m_intake.setIntakeMotor(0.5))
+                    new InstantCommand(()->m_intake.setIntakeMotor(0.3))
                     //new InstantCommand(()->m_hopper.setHopperMotor(0.5))
                     ))
                 .onFalse(new SequentialCommandGroup(

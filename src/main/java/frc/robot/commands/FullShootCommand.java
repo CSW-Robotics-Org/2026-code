@@ -60,7 +60,7 @@ public class FullShootCommand extends Command {
         if (turretTracker.rotationReady() && powerCommand.readyToShoot()) {
 
             hopper.setHopperMotor(0.5);
-            //intake.setIntakeMotor(0.3);
+            intake.setIntakeMotor(0.3);
             turret.setFeederMotor(0.15);
 
         }
