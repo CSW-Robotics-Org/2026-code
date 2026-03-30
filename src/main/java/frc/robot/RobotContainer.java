@@ -77,10 +77,10 @@ public class RobotContainer {
 
     // ID's will be changed
     public final Hopper m_hopper = new Hopper(35);
-    public final Intake m_intake = new Intake(17, 7, 6);
+    public final Intake m_intake = new Intake(7, 500, 501);
     
     // creates our limelights
-    public final Turret m_turret = new Turret(8, 10, 15);
+    public final Turret m_turret = new Turret(8, 6, 15);
     public final LimeLight limelight = new LimeLight("limelight-front");
     
     public TurretPowerCommand ShooterPowerCommand = new TurretPowerCommand(m_turret,limelight);
@@ -244,9 +244,19 @@ public class RobotContainer {
             new JoystickButton(m_operator,7)
                 .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)))
                 .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
-
-                
-            // back button -> reverse feeder
+            
+            //left bumper-> runs the intake motor and the hopper motor
+            new JoystickButton(m_operator, 5)
+                .onTrue( new SequentialCommandGroup(
+                    new InstantCommand(()->m_intake.setIntakeMotor(0.3)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0.5))
+                    ))
+                .onFalse(new SequentialCommandGroup(
+                    new InstantCommand(()->m_intake.setIntakeMotor(0)),
+                    new InstantCommand(()->m_hopper.setHopperMotor(0))
+                    ));    
+            
+                    // back button -> reverse feeder
             new JoystickButton(m_operator,9)
                 .onTrue(new InstantCommand(()-> m_turret.setFeederMotor(-0.75)))
                 .onFalse(new InstantCommand(()-> m_turret.setFeederMotor(0)));
@@ -259,16 +269,7 @@ public class RobotContainer {
                 .onFalse(new InstantCommand(()-> m_turret.setRotationMotor(0)));
             
             
-            // left bumper-> runs the feeder motor and the hopper motor
-            new JoystickButton(m_operator, 5)
-                .onTrue( new SequentialCommandGroup(
-                    new InstantCommand(()->m_intake.setIntakeMotor(0.3))
-                    //new InstantCommand(()->m_hopper.setHopperMotor(0.5))
-                    ))
-                .onFalse(new SequentialCommandGroup(
-                    new InstantCommand(()->m_intake.setIntakeMotor(0)),
-                    new InstantCommand(()->m_hopper.setHopperMotor(0))
-                    ));    
+            
 
             // Right bumper - > intake shimmy
             new JoystickButton(m_operator, 6).onTrue(
