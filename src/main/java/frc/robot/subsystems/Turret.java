@@ -86,6 +86,8 @@ public class Turret extends SubsystemBase{
         // speed = MathUtil.clamp(speed, -1, 1);
         // rotTargetRPM = speed*5676;
          rot_motor.set(speed);
+         System.out.println("Speed= "+ speed);
+         System.out.println("Velocity= "+ rot_encoder.getVelocity());
        //t_motor.setVoltage(6);
     }
 
@@ -125,14 +127,6 @@ public class Turret extends SubsystemBase{
 
      // Method that runs ~ every 20 ms
     public void periodic(){
-
-        // turret logic so we dont break the turret
-        if (left_lim_switch.get() && rot_encoder.getVelocity() > 0) {
-            rot_motor.set(0);
-        }
-        if (right_lim_switch.get() && rot_encoder.getVelocity()  < 0) {
-            rot_motor.set(0);
-        }
 
         // shooter loop to hold speed
         double shooterCurrentRPM = s_encoder.getVelocity();

@@ -5,31 +5,6 @@
     "data": {
       "commands": [
         {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "RotateForever"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 0.31
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Stop"
-          }
-        },
-        {
           "type": "path",
           "data": {
             "pathName": "Bottom to HPS"

@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
@@ -39,6 +40,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.FullShootCommand;
 import frc.robot.commands.TurretPowerCommand;
+//import frc.robot.commands.TurretRotationCommand;
 //import frc.robot.commands.TurretRotationCommand;
 import frc.robot.commands.TurretTracking2;
 import frc.robot.generated.TunerConstants;
@@ -85,6 +87,7 @@ public class RobotContainer {
     
     public TurretPowerCommand ShooterPowerCommand = new TurretPowerCommand(m_turret,limelight);
     public TurretTracking2 TurretTrackerCommand = new TurretTracking2(m_turret, limelight);
+    //public TurretRotationCommand rotationCommand = new TurretRotationCommand(m_turret, limelight);
     //public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight);
     public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,m_hopper,m_intake);
 
@@ -114,9 +117,8 @@ public class RobotContainer {
             drivetrain.applyRequest(() ->
                 drive.withVelocityX(-r_joystick.getY() * MaxSpeed) // Drive forward with negative Y (forward)
                     .withVelocityY(-r_joystick.getX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-l_joystick.getX() * MaxAngularRate)
-            )
-        );
+                    .withRotationalRate(-l_joystick.getX() * MaxAngularRate))
+                );
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
@@ -143,6 +145,7 @@ public class RobotContainer {
             // Named command for shooting
             NamedCommands.registerCommand("Shoot", FullShoot);
 
+            //NamedCommand.registerCommand("FeedAndShoot", 
             // Named command for shooting
             //NamedCommands.registerCommand("Rotate", new InstantCommand(()->m_turret.setRotationMotor(-0.2)));
             // rotate forever
@@ -165,18 +168,50 @@ public class RobotContainer {
             NamedCommands.registerCommand("Unintake", new InstantCommand(()-> m_intake.setIntakeMotor(0)));
             
             // Named command that shoots balls from hopper through shooter
-            NamedCommands.registerCommand("FeedAndShoot", 
-                new SequentialCommandGroup(
-                    // new InstantCommand(()-> m_hopper.setRollerMotor(0.5)),
-                    // Commands.race(ShooterPowerCommand,)
-                )
-            );
+            // NamedCommands.registerCommand("FeedAndShoot", 
+            //     new SequentialCommandGroup(
+            //         ShooterPowerCommand,
+            //         new InstantCommand(()-> m_hopper.setHopperMotor(0.25)),
+            //         new InstantCommand(()-> m_turret.setFeederMotor(0.3))
+                    
+            //     )
+            // );
 
        
 
 
 
         // ##### DRIVER CONTROLS #####
+
+            // Testing buttons
+            // Button 5, shoot 
+            // new JoystickButton(r_joystick, 5)
+            //     .onTrue(new InstantCommand(()->m_turret.setRotationMotor(0.09)))
+            //     .onFalse(new InstantCommand(()-> m_turret.setRotationMotor(0)));
+
+            // // new JoystickButton(r_joystick, 5)
+            // //     .onTrue(new InstantCommand(()-> System.out.println("Is this working")));
+
+            // new JoystickButton(r_joystick, 6)
+            //     .whileTrue(TurretTrackerCommand);
+
+            // Button 5, turret tracker cmd
+            // new JoystickButton(r_joystick, 6)
+            //     .onTrue(new InstantCommand(()->m_turret.setRotationMotor(-0.25)))
+            //     .onFalse(new InstantCommand(()->m_turret.setRotationMotor(0)));
+
+            // Button 5 ljoystick, feeder and hopper and intake
+            // new JoystickButton(l_joystick, 5)
+            //     .onTrue( new SequentialCommandGroup(
+            //         new InstantCommand(()->m_turret.setFeederMotor(0.2))
+            //         //new InstantCommand(()->m_hopper.setHopperMotor(-0.3)),
+            //         //new InstantCommand(()->m_intake.setIntakeMotor(0.25))
+            //         ))
+            //     .onFalse(new SequentialCommandGroup(
+            //         new InstantCommand(()->m_turret.setFeederMotor(0)),
+            //         new InstantCommand(()->m_hopper.setHopperMotor(0)),
+            //         new InstantCommand(()->m_intake.setIntakeMotor(0))
+            //         ));
 
             // Theoretically resets the field reletive possitioning
             new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(()-> drivetrain.seedFieldCentric()));
@@ -218,29 +253,34 @@ public class RobotContainer {
             // (Y) Button -> runs the shooter power command
             new JoystickButton(m_operator,4).whileTrue(ShooterPowerCommand);
 
+            // //(Y) Button -> runs rotational motor
+            // new JoystickButton(m_operator,4)
+            //     .onTrue(new InstantCommand(()-> m_turret.setRotationMotor(0.25)))
+            //     .onFalse(new InstantCommand(()->m_turret.setRotationMotor(0)));
+
             // (B) Button -> runs the turret rotation command
             new JoystickButton(m_operator, 3).whileTrue(TurretTrackerCommand);
             //new JoystickButton(m_operator,3).whileTrue(TurretAngleCommand);
             
-            // (A) Button -> runs the feeder motor and the hopper motor
+            // // (A) Button -> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 2)
                 .onTrue( new SequentialCommandGroup(
                     new InstantCommand(()->m_turret.setFeederMotor(0.15)),
-                    new InstantCommand(()->m_hopper.setHopperMotor(0.5)
-                    )))
+                    new InstantCommand(()->m_hopper.setHopperMotor(-0.5))
+                    ))
                 .onFalse(new SequentialCommandGroup(
                     new InstantCommand(()->m_turret.setFeederMotor(0)),
                     new InstantCommand(()->m_hopper.setHopperMotor(0))
                     ));
 
-            // (X) Button -> runs the full shoot command
+            // // (X) Button -> runs the full shoot command
             new JoystickButton(m_operator,1).whileTrue(FullShoot);
         
 
             // new JoystickButton(m_operator,10).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(180)));
             // new JoystickButton(m_operator,9).onTrue(new InstantCommand(()-> m_intake.setRotationTarget(90)));
             
-            // Left trigger -> spits out fuel from intake
+            // // Left trigger -> spits out fuel from intake
             new JoystickButton(m_operator,7)
                 .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)))
                 .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
@@ -248,30 +288,27 @@ public class RobotContainer {
             //left bumper-> runs the intake motor and the hopper motor
             new JoystickButton(m_operator, 5)
                 .onTrue( new SequentialCommandGroup(
-                    new InstantCommand(()->m_intake.setIntakeMotor(0.3)),
-                    new InstantCommand(()->m_hopper.setHopperMotor(0.5))
+                    new InstantCommand(()->m_intake.setIntakeMotor(0.3))
+                    //new InstantCommand(()->m_hopper.setHopperMotor(0.5))
                     ))
                 .onFalse(new SequentialCommandGroup(
-                    new InstantCommand(()->m_intake.setIntakeMotor(0)),
-                    new InstantCommand(()->m_hopper.setHopperMotor(0))
+                    new InstantCommand(()->m_intake.setIntakeMotor(0))
+                    //new InstantCommand(()->m_hopper.setHopperMotor(0))
                     ));    
             
-                    // back button -> reverse feeder
+            //         // back button -> reverse feeder
             new JoystickButton(m_operator,9)
                 .onTrue(new InstantCommand(()-> m_turret.setFeederMotor(-0.75)))
                 .onFalse(new InstantCommand(()-> m_turret.setFeederMotor(0)));
 
-            // right trigger -> manual turret and shooter 
+            // // right trigger -> manual turret and shooter 
                 new JoystickButton(m_operator, 8)
                 .whileTrue(new InstantCommand(()-> m_turret.setShooterMotor(MathUtil.clamp(-m_operator.getLeftY(),0,1))).repeatedly())
                 .whileTrue(new InstantCommand(()-> m_turret.setRotationMotor(MathUtil.clamp(m_operator.getLeftX()/10, -0.15, 0.15))).repeatedly())
                 .onFalse(new InstantCommand(()-> m_turret.setShooterMotor(0)))
                 .onFalse(new InstantCommand(()-> m_turret.setRotationMotor(0)));
             
-            
-            
-
-            // Right bumper - > intake shimmy
+            // // Right bumper - > intake shimmy
             new JoystickButton(m_operator, 6).onTrue(
                 new SequentialCommandGroup(
                     new InstantCommand(() -> m_intake.setIntakeMotor(-0.25)),
@@ -313,7 +350,6 @@ public class RobotContainer {
 
 
         // puts the power offset and angle offset on sd
-        SmartDashboard.putNumber("Shooter Power Offset", ShooterPowerCommand.getPowerOffset());
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 

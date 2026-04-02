@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.LimelightHelpers;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -29,8 +30,9 @@ public class TurretPowerCommand extends Command {
     @Override
     public void execute() {
 
-        // gets the raw limelight data
+        // // gets the raw limelight data
         double[] raw = limelight.getTargetPoseRobotSpace();
+        System.out.println(raw);
 
         // puts it into a pose 3d
         Pose3d hubPos = new Pose3d(
@@ -40,9 +42,17 @@ public class TurretPowerCommand extends Command {
 
         // finds the hypotenuse
         double targetDistance = Math.hypot(hubPos.getX(), hubPos.getZ());
+        System.out.println(targetDistance);
+
+        // double yTag = LimelightHelpers.getTY("limelight-front");
+        // double xTag = LimelightHelpers.getTX("limelight-front");
+
+        // double targetDistance = Math.hypot(xTag, yTag);
         
         // Quadratic formula for shooter power
-        double shooterPow =0.46 + 0.006 * (targetDistance) + 0.009 * Math.pow(targetDistance, 2);
+        //double shooterPow =0.46 + 0.006 * (targetDistance) + 0.009 * Math.pow(targetDistance, 2);
+        double xError = 0.7;
+        double shooterPow = (-0.00198003*Math.pow(targetDistance+xError, 2)) + (0.0716291*(targetDistance+xError)) + 0.372142;
         
         // clamps the shooter power
         shooterPow = MathUtil.clamp(shooterPow,-1,1);
@@ -54,6 +64,10 @@ public class TurretPowerCommand extends Command {
 
         // sets the shooter motor
         turret.setShooterMotor(shooterPow + shooterPowerOffset);
+        // System.out.println("x = " + hubPos.getX());
+        // System.out.println("z = " + hubPos.getZ());
+        System.out.println("target distance= " + targetDistance);
+        System.out.println("speed=" + shooterPow);
        
 
     }

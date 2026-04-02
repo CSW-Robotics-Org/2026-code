@@ -34,17 +34,10 @@
 //     public void execute() {
 
 //         // gets the raw limelight data
-//         double[] raw = limelight.getTargetPoseRobotSpace();
+//         double[] raw = limelight.getTargetPoseCameraSpace();
 
-//         // puts it into a pose 3d
-//         Pose3d hubPos = new Pose3d(
-//             new Translation3d(raw[0], raw[1], raw[2]),
-//             new Rotation3d(raw[3],raw[4],raw[5])
-//         );
+//         error = raw[4];
 
-//         error = hubPos.getX();
-
-//         //System.out.println("Hello world");
 //         // We want angleError -> 0
 //         double output = -turretPID.calculate(error, 0);
 
@@ -68,7 +61,7 @@
 //      */
 //     public boolean rotationReady(){
 //         return Math.abs(error)
-//         < 0.25;
+//         < 5;
 //     }
 
 //     @Override

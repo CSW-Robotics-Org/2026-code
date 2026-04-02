@@ -22,7 +22,10 @@ import frc.robot.subsystems.Turret;
 public class TurretTracking2 extends Command{
 
     // creates a pid for the turret
-    private static final PIDController turretPID = new PIDController(0.004, 0, 0.000001);
+    // 0004
+    //004
+    //016
+    private static final PIDController turretPID = new PIDController(0.008, 0, 0.000001);
 
     public double tagError;
 
@@ -59,7 +62,7 @@ public class TurretTracking2 extends Command{
     }
 
     public boolean rotationReady(){
-        return Math.abs(tagError) < 5;
+        return Math.abs(tagError) < 50;
     }
 
     public void end(boolean interrupted) {
