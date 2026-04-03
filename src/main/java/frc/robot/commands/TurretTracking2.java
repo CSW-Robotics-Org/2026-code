@@ -25,7 +25,7 @@ public class TurretTracking2 extends Command{
     // 0004
     //004
     //016
-    private static final PIDController turretPID = new PIDController(0.008, 0, 0.000001);
+    private static final PIDController turretPID = new PIDController(0.0085, 0, 0.000001);
 
     public double tagError;
 
@@ -62,7 +62,7 @@ public class TurretTracking2 extends Command{
     }
 
     public boolean rotationReady(){
-        return Math.abs(tagError) < 50;
+        return Math.abs(tagError) < 5;
     }
 
     public void end(boolean interrupted) {

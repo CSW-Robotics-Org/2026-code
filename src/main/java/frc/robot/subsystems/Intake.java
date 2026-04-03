@@ -83,6 +83,8 @@ public class Intake extends SubsystemBase{
     public void setIntakeMotor(double speed){
         speed = MathUtil.clamp(speed,-1,1 );
         intakeTargetRPM = speed*5676;
+        System.out.println("INtake working?");
+        System.out.println(intakeTargetRPM);
     }
 
     // Method that runs ~ every 20 ms
