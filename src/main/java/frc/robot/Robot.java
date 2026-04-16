@@ -6,8 +6,13 @@ package frc.robot;
 
 import com.ctre.phoenix6.HootAutoReplay;
 
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -38,7 +43,31 @@ public class Robot extends TimedRobot {
 
         m_robotContainer.field.setRobotPose(m_robotContainer.drivetrain.getState().Pose);
         SmartDashboard.putData("Field", m_robotContainer.field);
-    
+
+        double timeLeft = Timer.getMatchTime();
+        SmartDashboard.putNumber("Match Time", timeLeft);
+
+        SmartDashboard.putBoolean("FMS Connected", DriverStation.isFMSAttached());
+
+        SmartDashboard.putBoolean("DS Connected", DriverStation.isDSAttached());
+        
+        
+        String state;
+
+        if (DriverStation.isDisabled()) {
+            state = "DISABLED";
+        } else if (DriverStation.isAutonomous()) {
+            state = "AUTO";
+        } else if (DriverStation.isTeleop()) {
+            state = "TELEOP";
+        } else if (DriverStation.isTest()) {
+            state = "TEST";
+        } else {
+            state = "UNKNOWN";
+        }
+
+        SmartDashboard.putString("Robot State", state);
+
     }
 
     @Override

@@ -18,10 +18,14 @@ import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -108,6 +112,81 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
+
+        SmartDashboard.putData("Swerve Drive", new Sendable() {
+            @Override
+            public void initSendable(SendableBuilder builder) {
+
+                builder.setSmartDashboardType("SwerveDrive");
+
+                // Front Left
+                builder.addDoubleProperty(
+                    "Front Left Angle",
+                    () -> drivetrain.getModules()[0]
+                            .getPosition(false).angle.getRadians(),
+                    null
+                );
+
+                builder.addDoubleProperty(
+                    "Front Left Velocity",
+                    () -> drivetrain.getModules()[0]
+                            .getCurrentState().speedMetersPerSecond,
+                    null
+                );
+
+                // Front Right
+                builder.addDoubleProperty(
+                    "Front Right Angle",
+                    () -> drivetrain.getModules()[1]
+                            .getPosition(false).angle.getRadians(),
+                    null
+                );
+
+                builder.addDoubleProperty(
+                    "Front Right Velocity",
+                    () -> drivetrain.getModules()[1]
+                            .getCurrentState().speedMetersPerSecond,
+                    null
+                );
+
+                // Back Left
+                builder.addDoubleProperty(
+                    "Back Left Angle",
+                    () -> drivetrain.getModules()[2]
+                            .getPosition(false).angle.getRadians(),
+                    null
+                );
+
+                builder.addDoubleProperty(
+                    "Back Left Velocity",
+                    () -> drivetrain.getModules()[2]
+                            .getCurrentState().speedMetersPerSecond,
+                    null
+                );
+
+                // Back Right
+                builder.addDoubleProperty(
+                    "Back Right Angle",
+                    () -> drivetrain.getModules()[3]
+                            .getPosition(false).angle.getRadians(),
+                    null
+                );
+
+                builder.addDoubleProperty(
+                    "Back Right Velocity",
+                    () -> drivetrain.getModules()[3]
+                            .getCurrentState().speedMetersPerSecond,
+                    null
+                );
+
+                // Robot heading
+                builder.addDoubleProperty(
+                    "Robot Angle",
+                    () -> drivetrain.getState().Pose.getRotation().getRadians(),
+                    null
+                );
+            }
+        });
 
         Pigeon2 pigeon = new Pigeon2(0);
         var m_config = new MountPoseConfigs();
