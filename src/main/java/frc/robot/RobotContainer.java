@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -91,6 +92,9 @@ public class RobotContainer {
     public TurretRotationCommand rotationCommand = new TurretRotationCommand(m_turret, limelight);
     //public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight);
     public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,m_hopper,m_intake);
+
+    public final Field2d field = new Field2d();
+
 
     public RobotContainer() {
         configureBindings();
