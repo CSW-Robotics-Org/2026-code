@@ -36,10 +36,6 @@ public class Turret extends SubsystemBase{
     // stores the target rpm
     public double ftargetRPM = 0;
 
-    // creates the limit switches
-    private DigitalInput left_lim_switch = new DigitalInput(0);
-    private DigitalInput right_lim_switch = new DigitalInput(1);
-
     // creates a pid controller for the shooter
     private PIDController shooterPID = new PIDController(0.0008, 0, 0);
     // creates the feed forward for the shooter
@@ -53,7 +49,7 @@ public class Turret extends SubsystemBase{
     // creates a pid controller for the feeder
     private PIDController rotPID = new PIDController(0.0004, 0, 0);
     // creates the feed forward for the feeder
-    private SimpleMotorFeedforward rotFF = new SimpleMotorFeedforward(0.2, 0.0021);
+    private SimpleMotorFeedforward rotFF = new SimpleMotorFeedforward(0.1, 0.0021);
     /**
      * Constructor
      * @param shooter_id (id of the shooter motor)
@@ -83,12 +79,22 @@ public class Turret extends SubsystemBase{
      * @param speed
      */
     public void setRotationMotor(double speed) {
-        // speed = MathUtil.clamp(speed, -1, 1);
+        speed = MathUtil.clamp(speed, -1, 1);
         // rotTargetRPM = speed*5676;
          rot_motor.set(speed);
          System.out.println("Speed= "+ speed);
          System.out.println("Velocity= "+ rot_encoder.getVelocity());
        //t_motor.setVoltage(6);
+    }
+
+    /**
+     * Sets the speed of the rotation motor
+     * @param voltage
+     */
+    public void setRotationMotorVoltage(double volts) {
+        // speed = MathUtil.clamp(speed, -1, 1);
+        // rotTargetRPM = speed*5676;
+         rot_motor.setVoltage(volts);
     }
 
     /**
@@ -145,7 +151,7 @@ public class Turret extends SubsystemBase{
         voltage = MathUtil.clamp(voltage, -12, 12);
         feed_motor.setVoltage(voltage);
 
-        // // turret loop to hold speed
+        // turret loop to hold speed
         // double rotCurrentRPM = rot_encoder.getVelocity();
         // double rotPIDOutput = rotPID.calculate(rotCurrentRPM,rotTargetRPM);
         // double rotffOutput = rotFF.calculate(rotTargetRPM);

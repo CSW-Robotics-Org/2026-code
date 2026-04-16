@@ -4,6 +4,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -25,7 +26,7 @@ public class TurretTracking2 extends Command{
     // 0004
     //004
     //016
-    private static final PIDController turretPID = new PIDController(0.0085, 0, 0.000001);
+    private static final PIDController turretPID = new PIDController(0.008, 0, 0.000001);
 
     public double tagError;
 
@@ -58,11 +59,12 @@ public class TurretTracking2 extends Command{
         
         System.out.println("tag error: " + tagError);
         System.out.println("PIDoutput: " + PIDoutput);
+
         turret.setRotationMotor(PIDoutput);
     }
 
     public boolean rotationReady(){
-        return Math.abs(tagError) < 5;
+        return Math.abs(tagError) < 1;
     }
 
     public void end(boolean interrupted) {

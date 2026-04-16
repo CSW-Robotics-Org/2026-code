@@ -40,6 +40,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.FullShootCommand;
 import frc.robot.commands.TurretPowerCommand;
+import frc.robot.commands.TurretRotationCommand;
 //import frc.robot.commands.TurretRotationCommand;
 //import frc.robot.commands.TurretRotationCommand;
 import frc.robot.commands.TurretTracking2;
@@ -87,7 +88,7 @@ public class RobotContainer {
     
     public TurretPowerCommand ShooterPowerCommand = new TurretPowerCommand(m_turret,limelight);
     public TurretTracking2 TurretTrackerCommand = new TurretTracking2(m_turret, limelight);
-    //public TurretRotationCommand rotationCommand = new TurretRotationCommand(m_turret, limelight);
+    public TurretRotationCommand rotationCommand = new TurretRotationCommand(m_turret, limelight);
     //public TurretRotationCommand TurretAngleCommand = new TurretRotationCommand(m_turret,limelight);
     public FullShootCommand FullShoot = new FullShootCommand(m_turret,limelight,m_hopper,m_intake);
 
@@ -270,7 +271,7 @@ public class RobotContainer {
             new JoystickButton(m_operator, 2)
                 .onTrue( new SequentialCommandGroup(
                     new InstantCommand(()->m_turret.setFeederMotor(0.15)),
-                    new InstantCommand(()->m_hopper.setHopperMotor(-0.3))
+                    new InstantCommand(()->m_hopper.setHopperMotor(-0.2))
                     ))
                 .onFalse(new SequentialCommandGroup(
                     new InstantCommand(()->m_turret.setFeederMotor(0)),
@@ -282,8 +283,14 @@ public class RobotContainer {
             
             // // Left trigger -> spits out fuel from intake
             new JoystickButton(m_operator,7)
-                .onTrue(new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)))
-                .onFalse(new InstantCommand(()-> m_intake.setIntakeMotor(0)));
+                .onTrue(new SequentialCommandGroup(
+                    new InstantCommand(()-> m_intake.setIntakeMotor(-0.3)), 
+                    new InstantCommand(()->m_hopper.setHopperMotor(0.2)))) 
+                .onFalse( new SequentialCommandGroup(
+                        new InstantCommand(()-> m_intake.setIntakeMotor(0)),
+                        new InstantCommand(()-> m_hopper.setHopperMotor(0))
+                        )
+                );
             
             //left bumper-> runs the intake motor and the hopper motor
             new JoystickButton(m_operator, 5)

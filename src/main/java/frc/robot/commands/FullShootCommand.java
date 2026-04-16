@@ -51,17 +51,17 @@ public class FullShootCommand extends Command {
 
     @Override
     public void execute() {
-        //turretTracker.execute();
+        turretTracker.execute();
         powerCommand.execute();
         System.out.println("turret ready? : " + turretTracker.rotationReady() + ", Angle Error: " + turretTracker.tagError);
         System.out.println("shooter ready? : " + powerCommand.readyToShoot() + ", CurrentRPM, targetRPM: " + turret.s_encoder.getVelocity() + ", " + turret.targetRPM);
 
         // this will run if we all al ready to shoot and starts feeding balls
-        if (turretTracker.rotationReady() && powerCommand.readyToShoot()) {
+        if (powerCommand.readyToShoot()) {
 
-            hopper.setHopperMotor(-0.3);
+            hopper.setHopperMotor(-0.2);
             intake.setIntakeMotor(0.3);
-            turret.setFeederMotor(0.15);
+            turret.setFeederMotor(0.35);
 
         }
 

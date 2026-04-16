@@ -52,7 +52,7 @@ public class TurretPowerCommand extends Command {
         // Quadratic formula for shooter power
         //double shooterPow =0.46 + 0.006 * (targetDistance) + 0.009 * Math.pow(targetDistance, 2);
         double xError = 0.7;
-        double shooterPow = (-0.00198003*Math.pow(targetDistance+xError, 2)) + (0.0716291*(targetDistance+xError)) + 0.37214;
+        double shooterPow = (-0.00198003*Math.pow(targetDistance+xError, 2)) + (0.0706291*(targetDistance+xError)) + 0.35214;
         
         // clamps the shooter power
         shooterPow = MathUtil.clamp(shooterPow,-1,1);
