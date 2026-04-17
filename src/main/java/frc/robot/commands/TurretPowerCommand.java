@@ -30,9 +30,16 @@ public class TurretPowerCommand extends Command {
     @Override
     public void execute() {
 
+        
+
         // // gets the raw limelight data
         double[] raw = limelight.getTargetPoseRobotSpace();
         System.out.println(raw);
+
+        if (raw == null || raw.length < 6 || !limelight.hasTarget()) {
+        turret.setShooterMotor(0);
+        return;
+        }
 
         // puts it into a pose 3d
         Pose3d hubPos = new Pose3d(

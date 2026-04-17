@@ -59,6 +59,7 @@ import frc.robot.subsystems.Turret;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.FollowPathCommand;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -81,7 +82,7 @@ public class RobotContainer {
 
 
     // auto picker for command  /* Path follower */
-    private SendableChooser<Command> autoChooser;
+    public SendableChooser<Command> autoChooser;
 
     // ID's will be changed
     public final Hopper m_hopper = new Hopper(35);
@@ -112,6 +113,7 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
+        
 
         SmartDashboard.putData("Swerve Drive", new Sendable() {
             @Override
@@ -215,16 +217,6 @@ public class RobotContainer {
 
 
         // #### AUTO COMMANDS ####
-
-            // Freeze wheels command
-            NamedCommands.registerCommand("FreezeWheels", 
-                new InstantCommand(()-> 
-                    drivetrain.applyRequest(()-> 
-                        drive.withVelocityX(0)
-                        .withVelocityY(0)
-                        .withRotationalRate(0)) 
-                )
-            );
 
             // Named command for shooting
             NamedCommands.registerCommand("Shoot", FullShoot);
