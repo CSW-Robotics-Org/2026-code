@@ -51,6 +51,7 @@ import frc.robot.commands.TurretRotationCommand;
 import frc.robot.commands.TurretTracking2;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Dashboard;
 import frc.robot.subsystems.Hopper;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.LimeLight;
@@ -80,13 +81,15 @@ public class RobotContainer {
     private final Joystick l_joystick = new Joystick(0);
     private final Joystick r_joystick = new Joystick(1);
 
+    private final Dashboard dash = new Dashboard(this);
+
 
     // auto picker for command  /* Path follower */
     public SendableChooser<Command> autoChooser;
 
     // ID's will be changed
     public final Hopper m_hopper = new Hopper(35);
-    public final Intake m_intake = new Intake(7, 500, 501);
+    public final Intake m_intake = new Intake(7);
     
     // creates our limelights
     public final Turret m_turret = new Turret(8, 6, 15);
@@ -113,82 +116,6 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
-        
-
-        SmartDashboard.putData("Swerve Drive", new Sendable() {
-            @Override
-            public void initSendable(SendableBuilder builder) {
-
-                builder.setSmartDashboardType("SwerveDrive");
-
-                // Front Left
-                builder.addDoubleProperty(
-                    "Front Left Angle",
-                    () -> drivetrain.getModules()[0]
-                            .getPosition(false).angle.getRadians(),
-                    null
-                );
-
-                builder.addDoubleProperty(
-                    "Front Left Velocity",
-                    () -> drivetrain.getModules()[0]
-                            .getCurrentState().speedMetersPerSecond,
-                    null
-                );
-
-                // Front Right
-                builder.addDoubleProperty(
-                    "Front Right Angle",
-                    () -> drivetrain.getModules()[1]
-                            .getPosition(false).angle.getRadians(),
-                    null
-                );
-
-                builder.addDoubleProperty(
-                    "Front Right Velocity",
-                    () -> drivetrain.getModules()[1]
-                            .getCurrentState().speedMetersPerSecond,
-                    null
-                );
-
-                // Back Left
-                builder.addDoubleProperty(
-                    "Back Left Angle",
-                    () -> drivetrain.getModules()[2]
-                            .getPosition(false).angle.getRadians(),
-                    null
-                );
-
-                builder.addDoubleProperty(
-                    "Back Left Velocity",
-                    () -> drivetrain.getModules()[2]
-                            .getCurrentState().speedMetersPerSecond,
-                    null
-                );
-
-                // Back Right
-                builder.addDoubleProperty(
-                    "Back Right Angle",
-                    () -> drivetrain.getModules()[3]
-                            .getPosition(false).angle.getRadians(),
-                    null
-                );
-
-                builder.addDoubleProperty(
-                    "Back Right Velocity",
-                    () -> drivetrain.getModules()[3]
-                            .getCurrentState().speedMetersPerSecond,
-                    null
-                );
-
-                // Robot heading
-                builder.addDoubleProperty(
-                    "Robot Angle",
-                    () -> drivetrain.getState().Pose.getRotation().getRadians(),
-                    null
-                );
-            }
-        });
 
         Pigeon2 pigeon = new Pigeon2(0);
         var m_config = new MountPoseConfigs();

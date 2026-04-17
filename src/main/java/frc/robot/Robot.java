@@ -51,136 +51,6 @@ public class Robot extends TimedRobot {
     public void robotPeriodic() {
         m_timeAndJoystickReplay.update();
         CommandScheduler.getInstance().run(); 
-
-        // puts the shooter offset on sd
-        SmartDashboard.putNumber("Shooter Power Offset", m_robotContainer.ShooterPowerCommand.getPowerOffset());
-        
-        // puts battery voltage
-        double voltage = RobotController.getBatteryVoltage();
-        SmartDashboard.putNumber("Battery Voltage", voltage);
-
-        Pose2d robotPose = m_robotContainer.drivetrain.getState().Pose;
-
-        // DO NOT flip robot pose for Field2d
-        m_robotContainer.field.setRobotPose(robotPose);
-        SmartDashboard.putData(m_robotContainer.field);
-
-        // puts the match timer on screen
-        double timeLeft = Timer.getMatchTime();
-        int timeLeftRounded = (int) timeLeft;
-        SmartDashboard.putNumber("Match Time", timeLeftRounded);
-
-        // puts the fms connected boolean on screen
-        SmartDashboard.putBoolean("FMS Connected", DriverStation.isFMSAttached());
-        // puts the ds connected boolean on screen
-        SmartDashboard.putBoolean("DS Connected", DriverStation.isDSAttached());
-
-        // puts auto paths on screen
-        String selectedAuto = m_robotContainer.autoChooser.getSelected().getName();
-
-        if (selectedAuto != null && !selectedAuto.equals(lastAutoName)) {
-        lastAutoName = selectedAuto;
-
-        boolean isRed = isRedAlliance();
-
-        // clear old paths
-        for (int i = 0; i < 10; i++) {
-            m_robotContainer.field.getObject("Path " + i)
-                    .setPoses(new java.util.ArrayList<>());
-        }
-
-        try {
-            var paths = PathPlannerAuto.getPathGroupFromAutoFile(selectedAuto);
-
-            java.util.List<Pose2d> allPoses = new java.util.ArrayList<>();
-
-            for (int i = 0; i < paths.size(); i++) {
-
-                var rawPoses = paths.get(i).getPathPoses();
-
-                java.util.List<Pose2d> posesToDisplay = new java.util.ArrayList<>();
-
-                for (Pose2d pose : rawPoses) {
-                    posesToDisplay.add(
-                            isRed ? FlippingUtil.flipFieldPose(pose) : pose
-                    );
-                }
-
-                m_robotContainer.field.getObject("Path " + i)
-                        .setPoses(posesToDisplay);
-
-                allPoses.addAll(posesToDisplay);
-            }
-
-            if (!allPoses.isEmpty()) {
-
-                Pose2d start = allPoses.get(0);
-                Pose2d end = allPoses.get(allPoses.size() - 1);
-
-                m_robotContainer.field.getObject("Auto Start")
-                        .setPose(start);
-
-                m_robotContainer.field.getObject("Auto End")
-                        .setPose(end);
-            }
-
-        } catch (Exception e) {
-            System.out.println("Failed to load auto: " + selectedAuto);
-        }
-    }
-        
-        // puts the enabled state on sd
-        String state;
-
-        if (DriverStation.isDisabled()) {
-            state = "DISABLED";
-        } else if (DriverStation.isAutonomous()) {
-            state = "AUTO";
-        } else if (DriverStation.isTeleop()) {
-            state = "TELEOP";
-        } else if (DriverStation.isTest()) {
-            state = "TEST";
-        } else {
-            state = "UNKNOWN";
-        }
-
-        SmartDashboard.putString("Robot State", state);
-
-        // clears auto off field widget at end of auto
-        boolean isAuto = DriverStation.isAutonomous();
-
-        // Detect auto ending
-        if (wasAuto && !isAuto) {
-            // Clear all paths
-            for (int i = 0; i < 10; i++) {
-                m_robotContainer.field.getObject("Path " + i)
-                    .setPoses(new java.util.ArrayList<>());
-            }
-
-            m_robotContainer.field.getObject("Auto Start")
-                .setPose(OFF_FIELD);
-
-            m_robotContainer.field.getObject("Auto End")
-                .setPose(OFF_FIELD);
-        }
-
-        wasAuto = isAuto;
-
-        boolean isAutoNow = DriverStation.isAutonomousEnabled();
-
-        // force update on auto start/exit OR game data arrival
-        boolean shouldUpdate =
-                cachedShiftState == false || isAutoNow != lastAuto ||
-                DriverStation.getGameSpecificMessage().length() > 0;
-
-        if (shouldUpdate) {
-            cachedShiftState = computeShiftState();
-        }
-
-        lastAuto = isAutoNow;
-
-        SmartDashboard.putBoolean("Shift", cachedShiftState || isAutoNow);
-
     }
 
     // calculates our shift
@@ -244,7 +114,9 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void disabledInit() {}
+    public void disabledInit() {
+        m_robotContainer.limelight.initVisionCalibration();
+    }
 
     @Override
     public void disabledPeriodic() {}

@@ -1,5 +1,8 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
@@ -14,6 +17,16 @@ public class LimeLight extends SubsystemBase {
     /** Name of the Limelight as defined in the Limelight web interface */
     private String limelightName;
 
+    // Calibration state
+    private boolean isCalibrating = false;
+    private boolean exposureLocked = false;
+    private double calibrationStartTime = 0;
+    private double lockedExposure = 20;
+
+    private NetworkTable table;
+
+    private boolean timerStarted = false;
+
     /**
      * Creates a new Limelight subsystem.
      *
@@ -21,6 +34,8 @@ public class LimeLight extends SubsystemBase {
      */
     public LimeLight(String name) {
         this.limelightName = name;
+
+        this.table = NetworkTableInstance.getDefault().getTable(name);
     }
 
     /**
@@ -99,12 +114,64 @@ public class LimeLight extends SubsystemBase {
     }
 
     /**
+     * Call this in robotInit() or disabledInit()
+     * while pointed at an AprilTag.
+     */
+    public void initVisionCalibration() {
+        setAprilTag();
+
+        // Turn LEDs on
+        LimelightHelpers.setLEDMode_ForceOn(limelightName);
+
+        // Enable auto exposure
+        table.getEntry("ae_mode").setNumber(1);
+
+        calibrationStartTime = Timer.getFPGATimestamp();
+        isCalibrating = true;
+        exposureLocked = false;
+    }
+
+    private void handleCalibration() {
+        if (!isCalibrating || exposureLocked) return;
+
+        // Wait until we actually see a tag
+        if (hasTarget() && !timerStarted) {
+            calibrationStartTime = Timer.getFPGATimestamp();
+            timerStarted = true;
+        }
+
+        // If we haven't seen a tag yet, do nothing
+        if (!timerStarted) return;
+
+        double timeElapsed = Timer.getFPGATimestamp() - calibrationStartTime;
+
+        // Only lock after seeing tag + delay
+        if (hasTarget() && timeElapsed > 2.0) {
+
+            lockedExposure = table.getEntry("exposure").getDouble(20);
+
+            lockedExposure = Math.max(5, Math.min(50, lockedExposure));
+
+            table.getEntry("ae_mode").setNumber(0);
+            table.getEntry("exposure").setNumber(lockedExposure);
+
+            exposureLocked = true;
+            isCalibrating = false;
+        }
+    }
+
+    /**
      * Runs every robot loop (~20ms).
      * Sends useful Limelight data to SmartDashboard for debugging.
      */
     @Override
     public void periodic() {
+        handleCalibration();
+
         SmartDashboard.putBoolean("LL Target", hasTarget());
+        SmartDashboard.putBoolean("LL Calibrating", isCalibrating);
+        SmartDashboard.putBoolean("LL Exposure Locked", exposureLocked);
+        SmartDashboard.putNumber("LL Exposure", lockedExposure);
     }
 
     /**
