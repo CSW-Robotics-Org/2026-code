@@ -35,6 +35,9 @@ public class Robot extends TimedRobot {
     private boolean wasAuto = false;
     private final Pose2d OFF_FIELD = new Pose2d(-100, -100, new Rotation2d());
 
+    private boolean cachedShiftState = false;
+    private boolean lastAuto = false;
+
     /* log and replay timestamp and joystick data */
     private final HootAutoReplay m_timeAndJoystickReplay = new HootAutoReplay()
         .withTimestampReplay()
@@ -58,13 +61,9 @@ public class Robot extends TimedRobot {
 
         Pose2d robotPose = m_robotContainer.drivetrain.getState().Pose;
 
-        if (DriverStation.getAlliance().isPresent() &&
-            DriverStation.getAlliance().get() == Alliance.Red) {
-            robotPose = FlippingUtil.flipFieldPose(robotPose);
-        }
+        // DO NOT flip robot pose for Field2d
         m_robotContainer.field.setRobotPose(robotPose);
-        
-        SmartDashboard.putData("Field", m_robotContainer.field);
+        SmartDashboard.putData(m_robotContainer.field);
 
         // puts the match timer on screen
         double timeLeft = Timer.getMatchTime();
@@ -167,64 +166,59 @@ public class Robot extends TimedRobot {
 
         wasAuto = isAuto;
 
-        // puts whether it is our shift
-        SmartDashboard.putBoolean("Shift", isOurShiftActiveSoonOrMatchPhase());
+        boolean isAutoNow = DriverStation.isAutonomousEnabled();
+
+        // force update on auto start/exit OR game data arrival
+        boolean shouldUpdate =
+                cachedShiftState == false || isAutoNow != lastAuto ||
+                DriverStation.getGameSpecificMessage().length() > 0;
+
+        if (shouldUpdate) {
+            cachedShiftState = computeShiftState();
+        }
+
+        lastAuto = isAutoNow;
+
+        SmartDashboard.putBoolean("Shift", cachedShiftState || isAutoNow);
 
     }
 
     // calculates our shift
 
-    public boolean isOurShiftActiveSoonOrMatchPhase() {
-
-        // -------------------------
-        // Always true during AUTO
-        // -------------------------
-        if (DriverStation.isAutonomousEnabled()) {
-            return true;
-        }
+    private boolean computeShiftState() {
 
         String gameData = DriverStation.getGameSpecificMessage();
-        Optional<DriverStation.Alliance> allianceOpt = DriverStation.getAlliance();
+        Optional<Alliance> allianceOpt = DriverStation.getAlliance();
 
         if (gameData == null || gameData.isEmpty() || allianceOpt.isEmpty()) {
             return false;
         }
 
-        // -------------------------
-        // Parse game data
-        // -------------------------
-        boolean redInactiveFirst;
-        switch (gameData.charAt(0)) {
-            case 'R' -> redInactiveFirst = true;
-            case 'B' -> redInactiveFirst = false;
-            default -> { return false; }
+        if (DriverStation.isAutonomousEnabled()) {
+            return true;
         }
+        char data = gameData.charAt(0);
 
-        DriverStation.Alliance alliance = allianceOpt.get();
+        boolean redInactiveFirst;
+        if (data == 'R') redInactiveFirst = true;
+        else if (data == 'B') redInactiveFirst = false;
+        else return false;
 
-        boolean shift1Active = (alliance == DriverStation.Alliance.Red)
+        Alliance alliance = allianceOpt.get();
+
+        boolean shift1Active = (alliance == Alliance.Red)
                 ? !redInactiveFirst
                 : redInactiveFirst;
 
-        double matchTime = DriverStation.getMatchTime();
+        double t = Timer.getMatchTime();
 
-        // -------------------------
-        // Match phases
-        // -------------------------
-        boolean endgame = matchTime <= 30;
+        boolean endgame = t <= 30;
+        boolean transition = t > 130 && t <= 140;
 
-        boolean gameDataIncomingWindow = matchTime <= 23 && matchTime >= 20;
-
-        boolean transition = matchTime > 105 && matchTime <= 110;
-
-        // -------------------------
-        // Shift logic
-        // -------------------------
         int shift;
-        if (matchTime > 105) shift = 1;
-        else if (matchTime > 80) shift = 2;
-        else if (matchTime > 55) shift = 3;
-        else if (matchTime > 30) shift = 4;
+        if (t > 105) shift = 1;
+        else if (t > 80) shift = 2;
+        else if (t > 55) shift = 3;
         else shift = 4;
 
         boolean isOurShift =
@@ -236,13 +230,12 @@ public class Robot extends TimedRobot {
                     default -> false;
                 };
 
-        // -------------------------
-        // FINAL OUTPUT
-        // -------------------------
-        return  isOurShift
-                || gameDataIncomingWindow
-                || transition
-                || endgame;
+        boolean preShift = false;
+        if ((!isOurShift && t <= 108 && t >= 105) || (!isOurShift && t <= 83 && t >= 80) || (!isOurShift && t <= 58 && t >= 55) || (!isOurShift && t <= 33 && t >= 30)){
+            preShift = true;
+        }
+
+        return isOurShift || endgame || transition || preShift;
     }
 
     private boolean isRedAlliance() {
@@ -304,13 +297,8 @@ public class Robot extends TimedRobot {
         double matchTime = Timer.getMatchTime();
 
         // Force game data at ~21 seconds into match
-        if (matchTime <= 23 && matchTime >= 21) {
+        if (matchTime <= 130) {
             DriverStationSim.setGameSpecificMessage("R");
-        }
-
-        // Optional: clear it before auto ends so you match real timing behavior
-        if (matchTime > 23) {
-            DriverStationSim.setGameSpecificMessage("");
         }
 
     }
