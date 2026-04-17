@@ -169,52 +169,12 @@ public class RobotContainer {
             NamedCommands.registerCommand("Intake", new InstantCommand(()-> m_intake.setIntakeMotor(0.3)));
 
             NamedCommands.registerCommand("Unintake", new InstantCommand(()-> m_intake.setIntakeMotor(0)));
-            
-            // Named command that shoots balls from hopper through shooter
-            // NamedCommands.registerCommand("FeedAndShoot", 
-            //     new SequentialCommandGroup(
-            //         ShooterPowerCommand,
-            //         new InstantCommand(()-> m_hopper.setHopperMotor(0.25)),
-            //         new InstantCommand(()-> m_turret.setFeederMotor(0.3))
-                    
-            //     )
-            // );
 
        
 
 
 
         // ##### DRIVER CONTROLS #####
-
-            // Testing buttons
-            // Button 5, shoot 
-            // new JoystickButton(r_joystick, 5)
-            //     .onTrue(new InstantCommand(()->m_turret.setRotationMotor(0.09)))
-            //     .onFalse(new InstantCommand(()-> m_turret.setRotationMotor(0)));
-
-            // // new JoystickButton(r_joystick, 5)
-            // //     .onTrue(new InstantCommand(()-> System.out.println("Is this working")));
-
-            // new JoystickButton(r_joystick, 6)
-            //     .whileTrue(TurretTrackerCommand);
-
-            // Button 5, turret tracker cmd
-            // new JoystickButton(r_joystick, 6)
-            //     .onTrue(new InstantCommand(()->m_turret.setRotationMotor(-0.25)))
-            //     .onFalse(new InstantCommand(()->m_turret.setRotationMotor(0)));
-
-            // Button 5 ljoystick, feeder and hopper and intake
-            // new JoystickButton(l_joystick, 5)
-            //     .onTrue( new SequentialCommandGroup(
-            //         new InstantCommand(()->m_turret.setFeederMotor(0.2))
-            //         //new InstantCommand(()->m_hopper.setHopperMotor(-0.3)),
-            //         //new InstantCommand(()->m_intake.setIntakeMotor(0.25))
-            //         ))
-            //     .onFalse(new SequentialCommandGroup(
-            //         new InstantCommand(()->m_turret.setFeederMotor(0)),
-            //         new InstantCommand(()->m_hopper.setHopperMotor(0)),
-            //         new InstantCommand(()->m_intake.setIntakeMotor(0))
-            //         ));
 
             // Theoretically resets the field reletive possitioning
             new JoystickButton(r_joystick,3).onTrue(drivetrain.runOnce(()-> drivetrain.seedFieldCentric()));
@@ -231,24 +191,6 @@ public class RobotContainer {
             
             ));
 
-            // // rotation joystick button 3 -> bot shimmy
-            // new JoystickButton(r_joystick, 3).onTrue(new SequentialCommandGroup(
-            //     new InstantCommand(()-> drivetrain.applyRequest(()-> 
-            //         new SwerveRequest.RobotCentric()
-            //             .withVelocityX(0) // Drive forward with negative Y (forward)
-            //             .withVelocityY(0.7)
-            //             .withRotationalRate(0) // Drive left with negative X (left)
-            //     )),
-            //     Commands.waitSeconds(0.1),
-            //     new InstantCommand(()-> drivetrain.applyRequest(()-> 
-            //         new SwerveRequest.RobotCentric()
-            //             .withVelocityX(0) // Drive forward with negative Y (forward)
-            //             .withVelocityY(-0.7)
-            //             .withRotationalRate(0) // Drive left with negative X (left)
-            //     )),
-            //     Commands.waitSeconds(0.1))
-            // );
-
 
 
         // ##### OPERATOR CONTROLS #####
@@ -256,18 +198,9 @@ public class RobotContainer {
             // (Y) Button -> runs the shooter power command
             new JoystickButton(m_operator,4).whileTrue(ShooterPowerCommand);
 
-            // //(Y) Button -> runs rotational motor
-            // new JoystickButton(m_operator,4)
-            //     .onTrue(new InstantCommand(()-> m_turret.setRotationMotor(0.25)))
-            //     .onFalse(new InstantCommand(()->m_turret.setRotationMotor(0)));
-
             // (B) Button -> runs the turret rotation command
             new JoystickButton(m_operator, 3).whileTrue(TurretTrackerCommand);
             //new JoystickButton(m_operator,3).whileTrue(TurretAngleCommand);
-
-            // new JoystickButton(m_operator, 7)
-            //     .onTrue(new InstantCommand(()->m_turret.setRotationMotor(0.1)))
-            //     .onFalse(new InstantCommand(()->m_turret.setRotationMotor(0)));
             
             // // (A) Button -> runs the feeder motor and the hopper motor
             new JoystickButton(m_operator, 2)

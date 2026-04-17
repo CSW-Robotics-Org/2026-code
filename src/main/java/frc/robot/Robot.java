@@ -52,67 +52,7 @@ public class Robot extends TimedRobot {
         m_timeAndJoystickReplay.update();
         CommandScheduler.getInstance().run(); 
     }
-
-    // calculates our shift
-
-    private boolean computeShiftState() {
-
-        String gameData = DriverStation.getGameSpecificMessage();
-        Optional<Alliance> allianceOpt = DriverStation.getAlliance();
-
-        if (gameData == null || gameData.isEmpty() || allianceOpt.isEmpty()) {
-            return false;
-        }
-
-        if (DriverStation.isAutonomousEnabled()) {
-            return true;
-        }
-        char data = gameData.charAt(0);
-
-        boolean redInactiveFirst;
-        if (data == 'R') redInactiveFirst = true;
-        else if (data == 'B') redInactiveFirst = false;
-        else return false;
-
-        Alliance alliance = allianceOpt.get();
-
-        boolean shift1Active = (alliance == Alliance.Red)
-                ? !redInactiveFirst
-                : redInactiveFirst;
-
-        double t = Timer.getMatchTime();
-
-        boolean endgame = t <= 30;
-        boolean transition = t > 130 && t <= 140;
-
-        int shift;
-        if (t > 105) shift = 1;
-        else if (t > 80) shift = 2;
-        else if (t > 55) shift = 3;
-        else shift = 4;
-
-        boolean isOurShift =
-                switch (shift) {
-                    case 1 -> shift1Active;
-                    case 2 -> !shift1Active;
-                    case 3 -> shift1Active;
-                    case 4 -> !shift1Active;
-                    default -> false;
-                };
-
-        boolean preShift = false;
-        if ((!isOurShift && t <= 108 && t >= 105) || (!isOurShift && t <= 83 && t >= 80) || (!isOurShift && t <= 58 && t >= 55) || (!isOurShift && t <= 33 && t >= 30)){
-            preShift = true;
-        }
-
-        return isOurShift || endgame || transition || preShift;
-    }
-
-    private boolean isRedAlliance() {
-        return DriverStation.getAlliance()
-                .orElse(Alliance.Blue) == Alliance.Red;
-    }
-
+    
     @Override
     public void disabledInit() {
     }
